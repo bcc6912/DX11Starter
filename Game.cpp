@@ -161,6 +161,7 @@ void Game::LoadShaders()
 // --------------------------------------------------------
 void Game::CreateGeometry()
 {
+	/*
 	// Create some temporary variables to represent colors
 	// - Not necessary, just makes things more readable
 	XMFLOAT4 red	= XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
@@ -246,6 +247,54 @@ void Game::CreateGeometry()
 		// - Once we do this, we'll NEVER CHANGE THE BUFFER AGAIN
 		device->CreateBuffer(&ibd, &initialIndexData, indexBuffer.GetAddressOf());
 	}
+	*/
+
+
+	// colors for meshes
+	XMFLOAT4 red = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
+	XMFLOAT4 green = XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
+	XMFLOAT4 blue = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
+	XMFLOAT4 yellow = XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f);
+	XMFLOAT4 black = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
+	XMFLOAT4 pink = XMFLOAT4(1.0f, 0.0f, 0.5f, 1.0f);
+	XMFLOAT4 purple = XMFLOAT4(0.5f, 0.0f, 0.5f, 1.0f);
+
+	Vertex vertices0[] =
+	{
+		{ XMFLOAT3(+0.0f, +0.5f, +0.0f), red },
+		{ XMFLOAT3(+0.5f, -0.5f, +0.0f), blue },
+		{ XMFLOAT3(-0.5f, -0.5f, +0.0f), green }
+	};
+
+	unsigned int indices0[] = { 0, 1, 2 };
+
+	meshes[0] = std::make_shared<Mesh>(vertices0, 3, indices0, 3, device, context);
+
+	Vertex vertices1[] =
+	{
+		{ XMFLOAT3(-0.7f, +0.8f, +0.0f), black },
+		{ XMFLOAT3(-0.75f, +0.75f, +0.0f), black },
+		{ XMFLOAT3(-0.8f, +0.8f, +0.0f), black },
+		{ XMFLOAT3(-0.75f, +0.85f, +0.0f), black }
+	};
+
+	unsigned int indices1[] = { 0, 1, 2, 2, 3, 0 };
+
+	meshes[1] = std::make_shared<Mesh>(vertices1, 6, indices1, 6, device, context);
+
+	Vertex vertices2[] =
+	{
+		{ XMFLOAT3(+0.75f, -0.5f, +0.0f), purple },
+		{ XMFLOAT3(+0.8f, -0.6f, +0.0f), pink },
+		{ XMFLOAT3(+0.85f, -0.5f, +0.0f), purple },
+		{ XMFLOAT3(+0.7f, -0.6f, +0.0f), pink },
+		{ XMFLOAT3(+0.9f, -0.6f, +0.0f), pink },
+		{ XMFLOAT3(+0.8f, -0.9f, +0.0f), purple }
+	};
+
+	unsigned int indices2[] = { 3, 0, 1, 1, 2, 4, 4, 5, 3 };
+
+	meshes[2] = std::make_shared<Mesh>(vertices2, 9, indices2, 9, device, context);
 }
 
 
@@ -293,6 +342,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	UINT stride = sizeof(Vertex);
 	UINT offset = 0;
 	{
+		/*
 		// Set buffers in the input assembler (IA) stage
 		//  - Do this ONCE PER OBJECT, since each object may have different geometry
 		//  - For this demo, this step *could* simply be done once during Init()
@@ -311,6 +361,12 @@ void Game::Draw(float deltaTime, float totalTime)
 			3,     // The number of indices to use (we could draw a subset if we wanted)
 			0,     // Offset to the first index we want to use
 			0);    // Offset to add to each index when looking up vertices
+		*/
+
+		for (std::shared_ptr<Mesh> m : meshes)
+		{
+			m->Draw(deltaTime, totalTime);
+		}
 	}
 
 	// Frame END
