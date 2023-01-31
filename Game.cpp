@@ -2,6 +2,11 @@
 #include "Vertex.h"
 #include "Input.h"
 #include "Helpers.h"
+#include "BufferStructs.h"
+
+#include "ImGui/imgui.h"
+#include "ImGui/imgui_impl_dx11.h"
+#include "ImGui/imgui_impl_win32.h"
 
 // Needed for a helper function to load pre-compiled shader files
 #pragma comment(lib, "d3dcompiler.lib")
@@ -47,6 +52,11 @@ Game::~Game()
 
 	// Call Release() on any Direct3D objects made within this class
 	// - Note: this is unnecessary for D3D objects stored in ComPtrs
+
+	// ImGui clean up
+	ImGui_ImplDX11_Shutdown();
+	ImGui_ImplWin32_Shutdown();
+	ImGui::DestroyContext();
 }
 
 // --------------------------------------------------------
@@ -82,6 +92,27 @@ void Game::Init()
 		context->VSSetShader(vertexShader.Get(), 0, 0);
 		context->PSSetShader(pixelShader.Get(), 0, 0);
 	}
+
+	// Get size as the next multiple of 16 (instead of hardcoding a size here!)
+	unsigned int size = sizeof(VertexShaderExternalData);
+	size = (size + 15) / 16 * 16; // This will work even if the struct size changes
+
+	// Describe the constant buffer
+	D3D11_BUFFER_DESC cbDesc = {}; // Sets struct to all zeros
+	cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	cbDesc.ByteWidth = size; // Must be a multiple of 16
+	cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	cbDesc.Usage = D3D11_USAGE_DYNAMIC;
+
+	device->CreateBuffer(&cbDesc, 0, vsConstantBuffer.GetAddressOf());
+
+	// Initialize ImGui
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGui_ImplWin32_Init(hWnd);
+	ImGui_ImplDX11_Init(device.Get(), context.Get());
+
+	ImGui::StyleColorsDark();
 }
 
 // --------------------------------------------------------
@@ -255,7 +286,8 @@ void Game::CreateGeometry()
 	XMFLOAT4 green = XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
 	XMFLOAT4 blue = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
 	XMFLOAT4 yellow = XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f);
-	XMFLOAT4 black = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
+	XMFLOAT4 gray = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
+	XMFLOAT4 white = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	XMFLOAT4 pink = XMFLOAT4(1.0f, 0.0f, 0.5f, 1.0f);
 	XMFLOAT4 purple = XMFLOAT4(0.5f, 0.0f, 0.5f, 1.0f);
 
@@ -272,10 +304,10 @@ void Game::CreateGeometry()
 
 	Vertex vertices1[] =
 	{
-		{ XMFLOAT3(-0.7f, +0.8f, +0.0f), black },
-		{ XMFLOAT3(-0.75f, +0.75f, +0.0f), black },
-		{ XMFLOAT3(-0.8f, +0.8f, +0.0f), black },
-		{ XMFLOAT3(-0.75f, +0.85f, +0.0f), black }
+		{ XMFLOAT3(-0.7f, +0.8f, +0.0f), white },
+		{ XMFLOAT3(-0.75f, +0.75f, +0.0f), gray },
+		{ XMFLOAT3(-0.8f, +0.8f, +0.0f), white },
+		{ XMFLOAT3(-0.75f, +0.85f, +0.0f), gray }
 	};
 
 	unsigned int indices1[] = { 0, 1, 2, 2, 3, 0 };
@@ -284,12 +316,12 @@ void Game::CreateGeometry()
 
 	Vertex vertices2[] =
 	{
-		{ XMFLOAT3(+0.75f, -0.5f, +0.0f), purple },
-		{ XMFLOAT3(+0.8f, -0.6f, +0.0f), pink },
-		{ XMFLOAT3(+0.85f, -0.5f, +0.0f), purple },
+		{ XMFLOAT3(+0.65f, -0.5f, +0.0f), purple },
 		{ XMFLOAT3(+0.7f, -0.6f, +0.0f), pink },
-		{ XMFLOAT3(+0.9f, -0.6f, +0.0f), pink },
-		{ XMFLOAT3(+0.8f, -0.9f, +0.0f), purple }
+		{ XMFLOAT3(+0.75f, -0.5f, +0.0f), purple },
+		{ XMFLOAT3(+0.6f, -0.6f, +0.0f), pink },
+		{ XMFLOAT3(+0.8f, -0.6f, +0.0f), pink },
+		{ XMFLOAT3(+0.7f, -0.9f, +0.0f), purple }
 	};
 
 	unsigned int indices2[] = { 3, 0, 1, 1, 2, 4, 4, 5, 3 };
@@ -314,6 +346,65 @@ void Game::OnResize()
 // --------------------------------------------------------
 void Game::Update(float deltaTime, float totalTime)
 {
+	// feed fresh input data to ImGui
+	ImGuiIO& io = ImGui::GetIO();
+	io.DeltaTime = deltaTime;
+	io.DisplaySize.x = (float)this->windowWidth;
+	io.DisplaySize.y = (float)this->windowHeight;
+
+	// reset the frame
+	ImGui_ImplDX11_NewFrame();
+	ImGui_ImplWin32_NewFrame();
+	ImGui::NewFrame();
+
+	// determine input capture
+	Input& input = Input::GetInstance();
+	input.SetKeyboardCapture(io.WantCaptureKeyboard);
+	input.SetMouseCapture(io.WantCaptureMouse);
+
+	// show demo window
+	ImGui::ShowDemoWindow();
+
+	// ADD ANY NEW IMGUI UI FEATURES HERE
+	ImGui::Begin("Custom Window");
+	ImGui::Text("Welcome to my custom window");
+
+	ImGui::Text("Framerate: %f", io.Framerate);
+	ImGui::Text("Window Dimensions:");
+	ImGui::BulletText("X: %5.1f", io.DisplaySize.x);
+	ImGui::BulletText("Y: %5.1f", io.DisplaySize.y);
+
+	// ImGui::ColorEdit4("Color Tint", &this->colorTint.x);
+	// ImGui::DragFloat3("Offset", &this->offset.x);
+
+	// creates color/offset options for each mesh
+	// loops for each mesh
+	for (int i = 0; i < meshes.size(); i++)
+	{
+		// unique labels are important to ensure only the individual editor is being changed
+		std::string tintLabel = "Color Tint##" + std::to_string(i);
+		std::string offsetLabel = "Offset##" + std::to_string(i);
+		ImGui::Text("Mesh #%i", i + 1);
+		ImGui::ColorEdit4(tintLabel.c_str(), &this->colorTints[i].x);
+		ImGui::DragFloat3(offsetLabel.c_str(), &this->offsets[i].x);
+	}
+
+	/*
+	ImGui::Text("Mesh #1");
+	ImGui::ColorEdit4("Color Tint##1", &this->colorTints[0].x);
+	ImGui::DragFloat3("Offset##1", &this->offsets[0].x);
+
+	ImGui::Text("Mesh #2");
+	ImGui::ColorEdit4("Color Tint##2", &this->colorTints[1].x);
+	ImGui::DragFloat3("Offset##2", &this->offsets[1].x);
+
+	ImGui::Text("Mesh #3");
+	ImGui::ColorEdit4("Color Tint##3", &this->colorTints[2].x);
+	ImGui::DragFloat3("Offset##3", &this->offsets[2].x);
+	*/
+
+	ImGui::End();
+
 	// Example input checking: Quit if the escape key is pressed
 	if (Input::GetInstance().KeyDown(VK_ESCAPE))
 		Quit();
@@ -324,6 +415,23 @@ void Game::Update(float deltaTime, float totalTime)
 // --------------------------------------------------------
 void Game::Draw(float deltaTime, float totalTime)
 {
+	VertexShaderExternalData vsData;
+	vsData.colorTint = XMFLOAT4(1.0f, 0.5f, 0.5f, 1.0f);
+	vsData.offset = XMFLOAT3(0.25f, 0.0f, 0.0f);
+
+	// temporary comments here
+	// next assignment lets us set up architecture to give each mesh own color/offset
+	// the three commented lines below work, but are commented to do the above for now
+	D3D11_MAPPED_SUBRESOURCE mappedBuffer = {};
+	// context->Map(vsConstantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedBuffer);
+	// memcpy(mappedBuffer.pData, &vsData, sizeof(vsData));
+	// context->Unmap(vsConstantBuffer.Get(), 0);
+
+	context->VSSetConstantBuffers(
+		0, // Which slot (register) to bind the buffer to?
+		1, // How many are we activating? Can do multiple at once
+		vsConstantBuffer.GetAddressOf()); // Array of buffers (or the address of one)
+
 	// Frame START
 	// - These things should happen ONCE PER FRAME
 	// - At the beginning of Game::Draw() before drawing *anything*
@@ -363,9 +471,23 @@ void Game::Draw(float deltaTime, float totalTime)
 			0);    // Offset to add to each index when looking up vertices
 		*/
 
+		// temporary int here
+		// next assignment lets us set up architecture to give each mesh own color/offset
+		int i = 0;
 		for (std::shared_ptr<Mesh> m : meshes)
 		{
+			// set vertex shader data to customized tint/offset
+			vsData.colorTint = this->colorTints[i];
+			vsData.offset = this->offsets[i];
+
+			// input new vertex shader data so only the individual mesh is changed
+			context->Map(vsConstantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedBuffer);
+			memcpy(mappedBuffer.pData, &vsData, sizeof(vsData));
+			context->Unmap(vsConstantBuffer.Get(), 0);
+
 			m->Draw(deltaTime, totalTime);
+
+			i++;
 		}
 	}
 
@@ -377,6 +499,11 @@ void Game::Draw(float deltaTime, float totalTime)
 		//  - Puts the results of what we've drawn onto the window
 		//  - Without this, the user never sees anything
 		bool vsyncNecessary = vsync || !deviceSupportsTearing || isFullscreen;
+
+		// ImGui
+		ImGui::Render();
+		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+
 		swapChain->Present(
 			vsyncNecessary ? 1 : 0,
 			vsyncNecessary ? 0 : DXGI_PRESENT_ALLOW_TEARING);

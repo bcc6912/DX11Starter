@@ -44,5 +44,16 @@ private:
 
 	// holds meshes
 	std::vector<std::shared_ptr<Mesh>> meshes{ std::shared_ptr<Mesh>(), std::shared_ptr<Mesh>(), std::shared_ptr<Mesh>()};
+
+	// Assignment 3
+	Microsoft::WRL::ComPtr<ID3D11Buffer> vsConstantBuffer;
+
+	// DirectX::XMFLOAT4 colorTint = DirectX::XMFLOAT4(1.0f, 0.5f, 0.5f, 1.0f);
+	// DirectX::XMFLOAT3 offset = DirectX::XMFLOAT3(0.25f, 0.0f, 0.0f);
+
+	// different tints for each mesh
+	// must add a new item manually to use on new mesh
+	std::vector<DirectX::XMFLOAT4> colorTints{ DirectX::XMFLOAT4(1.0f, 0.5f, 0.5f, 1.0f), DirectX::XMFLOAT4(1.0f, 0.5f, 0.5f, 1.0f), DirectX::XMFLOAT4(1.0f, 0.5f, 0.5f, 1.0f) };
+	std::vector<DirectX::XMFLOAT3> offsets{ DirectX::XMFLOAT3(0.25f, 0.0f, 0.0f), DirectX::XMFLOAT3(0.25f, 0.0f, 0.0f), DirectX::XMFLOAT3(0.25f, 0.0f, 0.0f) };
 };
 
