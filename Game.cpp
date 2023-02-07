@@ -300,7 +300,7 @@ void Game::CreateGeometry()
 
 	unsigned int indices0[] = { 0, 1, 2 };
 
-	meshes[0] = std::make_shared<Mesh>(vertices0, 3, indices0, 3, device, context);
+	meshes[0] = std::make_shared<Mesh>(vertices0, 3, indices0, 3, device);
 
 	Vertex vertices1[] =
 	{
@@ -312,7 +312,7 @@ void Game::CreateGeometry()
 
 	unsigned int indices1[] = { 0, 1, 2, 2, 3, 0 };
 
-	meshes[1] = std::make_shared<Mesh>(vertices1, 6, indices1, 6, device, context);
+	meshes[1] = std::make_shared<Mesh>(vertices1, 6, indices1, 6, device);
 
 	Vertex vertices2[] =
 	{
@@ -326,7 +326,27 @@ void Game::CreateGeometry()
 
 	unsigned int indices2[] = { 3, 0, 1, 1, 2, 4, 4, 5, 3 };
 
-	meshes[2] = std::make_shared<Mesh>(vertices2, 9, indices2, 9, device, context);
+	meshes[2] = std::make_shared<Mesh>(vertices2, 9, indices2, 9, device);
+
+	// create entities
+	std::shared_ptr<GameEntity> entity1 = std::make_shared<GameEntity>(meshes[0]);
+	std::shared_ptr<GameEntity> entity2 = std::make_shared<GameEntity>(meshes[0]);
+	std::shared_ptr<GameEntity> entity3 = std::make_shared<GameEntity>(meshes[1]);
+	std::shared_ptr<GameEntity> entity4 = std::make_shared<GameEntity>(meshes[1]);
+	std::shared_ptr<GameEntity> entity5 = std::make_shared<GameEntity>(meshes[2]);
+
+	// transform entities
+	entity1->GetTransform()->Rotate(0.0f, 0.0f, 0.5f);
+	entity2->GetTransform()->MoveAbsolute(-0.6f, -0.25f, 0.0f);
+	entity3->GetTransform()->MoveAbsolute(0.5f, -1.1f, 0.0f);
+	entity4->GetTransform()->Rotate(0.0f, 0.0f, 0.33f);
+	entity5->GetTransform()->Scale(1.2f, 1.1f, 1.0f);
+
+	entities.push_back(entity1);
+	entities.push_back(entity2);
+	entities.push_back(entity3);
+	entities.push_back(entity4);
+	entities.push_back(entity5);
 }
 
 
@@ -369,24 +389,74 @@ void Game::Update(float deltaTime, float totalTime)
 	ImGui::Begin("Custom Window");
 	ImGui::Text("Welcome to my custom window");
 
-	ImGui::Text("Framerate: %f", io.Framerate);
-	ImGui::Text("Window Dimensions:");
-	ImGui::BulletText("X: %5.1f", io.DisplaySize.x);
-	ImGui::BulletText("Y: %5.1f", io.DisplaySize.y);
+	if (ImGui::CollapsingHeader("Basic Info"))
+	{
+		ImGui::Text("Framerate: %f", io.Framerate);
+		ImGui::Text("Window Dimensions:");
+		ImGui::BulletText("X: %5.1f", io.DisplaySize.x);
+		ImGui::BulletText("Y: %5.1f", io.DisplaySize.y);
+	}
 
 	// ImGui::ColorEdit4("Color Tint", &this->colorTint.x);
 	// ImGui::DragFloat3("Offset", &this->offset.x);
 
-	// creates color/offset options for each mesh
-	// loops for each mesh
-	for (int i = 0; i < meshes.size(); i++)
+	if (ImGui::CollapsingHeader("Meshes"))
 	{
-		// unique labels are important to ensure only the individual editor is being changed
-		std::string tintLabel = "Color Tint##" + std::to_string(i);
-		std::string offsetLabel = "Offset##" + std::to_string(i);
-		ImGui::Text("Mesh #%i", i + 1);
-		ImGui::ColorEdit4(tintLabel.c_str(), &this->colorTints[i].x);
-		ImGui::DragFloat3(offsetLabel.c_str(), &this->offsets[i].x);
+		// creates color/offset options for each mesh
+		// loops for each mesh
+		for (int i = 0; i < meshes.size(); i++)
+		{
+			// unique labels are important to ensure only the individual editor is being changed
+			ImGui::PushID(i);
+
+			if (ImGui::TreeNode("Mesh Node", "Mesh #%i", i + 1))
+			{
+				ImGui::ColorEdit4("Color Tint", &this->colorTints[i].x);
+				ImGui::DragFloat3("Offset", &this->offsets[i].x, 0.01f);
+
+				ImGui::TreePop();
+			}
+			ImGui::PopID();
+		}
+		// ImGui::TreePop();
+		ImGui::Spacing();
+	}
+
+	if (ImGui::CollapsingHeader("Scene Entities"))
+	{
+		
+		for (int i = 0; i < entities.size(); i++)
+		{
+			ImGui::PushID(i);
+
+			std::shared_ptr<Transform> transform = entities[i]->GetTransform();
+			XMFLOAT3 position = transform->GetPosition();
+			XMFLOAT3 rotation = transform->GetPitchYawRoll();
+			XMFLOAT3 scale = transform->GetScale();
+
+			if (ImGui::TreeNode("Entity Node", "Entity #%i", i + 1))
+			{
+				if (ImGui::DragFloat3("Position", &position.x, 0.01f))
+				{
+					transform->SetPosition(position);
+				}
+				if (ImGui::DragFloat3("Rotation", &rotation.x, 0.01f))
+				{
+					transform->SetRotation(rotation);
+				}
+				if (ImGui::DragFloat3("Scale", &scale.x, 0.01f))
+				{
+					transform->SetScale(scale);
+				}
+
+				ImGui::TreePop();
+			}
+			ImGui::PopID();
+
+			ImGui::Spacing();
+		}
+
+		// ImGui::TreePop();
 	}
 
 	/*
@@ -405,6 +475,13 @@ void Game::Update(float deltaTime, float totalTime)
 
 	ImGui::End();
 
+	// move all entities
+	for (std::shared_ptr<GameEntity> g : entities)
+	{
+		std::shared_ptr<Transform> transform = g->GetTransform();
+		transform->Rotate(0.0f, 0.0f, -deltaTime * 0.5f);
+	}
+
 	// Example input checking: Quit if the escape key is pressed
 	if (Input::GetInstance().KeyDown(VK_ESCAPE))
 		Quit();
@@ -415,14 +492,14 @@ void Game::Update(float deltaTime, float totalTime)
 // --------------------------------------------------------
 void Game::Draw(float deltaTime, float totalTime)
 {
-	VertexShaderExternalData vsData;
-	vsData.colorTint = XMFLOAT4(1.0f, 0.5f, 0.5f, 1.0f);
-	vsData.offset = XMFLOAT3(0.25f, 0.0f, 0.0f);
+	// VertexShaderExternalData vsData;
+	// vsData.colorTint = XMFLOAT4(1.0f, 0.5f, 0.5f, 1.0f);
+	// vsData.offset = XMFLOAT3(0.25f, 0.0f, 0.0f);
 
 	// temporary comments here
 	// next assignment lets us set up architecture to give each mesh own color/offset
 	// the three commented lines below work, but are commented to do the above for now
-	D3D11_MAPPED_SUBRESOURCE mappedBuffer = {};
+	// D3D11_MAPPED_SUBRESOURCE mappedBuffer = {};
 	// context->Map(vsConstantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedBuffer);
 	// memcpy(mappedBuffer.pData, &vsData, sizeof(vsData));
 	// context->Unmap(vsConstantBuffer.Get(), 0);
@@ -473,6 +550,7 @@ void Game::Draw(float deltaTime, float totalTime)
 
 		// temporary int here
 		// next assignment lets us set up architecture to give each mesh own color/offset
+		/*
 		int i = 0;
 		for (std::shared_ptr<Mesh> m : meshes)
 		{
@@ -489,6 +567,14 @@ void Game::Draw(float deltaTime, float totalTime)
 
 			i++;
 		}
+		*/
+
+		// assignment 4
+		for (std::shared_ptr<GameEntity> g : entities)
+		{
+			g->Draw(context, vsConstantBuffer);
+		}
+
 	}
 
 	// Frame END

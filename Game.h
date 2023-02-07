@@ -6,6 +6,7 @@
 #include "Mesh.h"
 #include <memory>
 #include <vector>
+#include "GameEntity.h"
 
 class Game
 	: public DXCore
@@ -55,5 +56,8 @@ private:
 	// must add a new item manually to use on new mesh
 	std::vector<DirectX::XMFLOAT4> colorTints{ DirectX::XMFLOAT4(1.0f, 0.5f, 0.5f, 1.0f), DirectX::XMFLOAT4(1.0f, 0.5f, 0.5f, 1.0f), DirectX::XMFLOAT4(1.0f, 0.5f, 0.5f, 1.0f) };
 	std::vector<DirectX::XMFLOAT3> offsets{ DirectX::XMFLOAT3(0.25f, 0.0f, 0.0f), DirectX::XMFLOAT3(0.25f, 0.0f, 0.0f), DirectX::XMFLOAT3(0.25f, 0.0f, 0.0f) };
+
+	// Assignment 4
+	std::vector<std::shared_ptr<GameEntity>> entities;
 };
 

@@ -20,7 +20,7 @@ int Mesh::GetIndexCount()
 	return indicesCount;
 }
 
-void Mesh::Draw(float deltaTime, float totalTime)
+void Mesh::Draw(Microsoft::WRL::ComPtr<ID3D11DeviceContext> deviceContext)
 {
 	// int indexCount = GetIndexCount();
 	UINT stride = sizeof(Vertex);
@@ -38,7 +38,7 @@ void Mesh::Draw(float deltaTime, float totalTime)
 		0);    // Offset to add to each index when looking up vertices
 }
 
-Mesh::Mesh(Vertex* vertices, int vertexCount, unsigned int* indices, int indexCount, Microsoft::WRL::ComPtr<ID3D11Device> device, Microsoft::WRL::ComPtr<ID3D11DeviceContext> deviceContext)
+Mesh::Mesh(Vertex* vertices, int vertexCount, unsigned int* indices, int indexCount, Microsoft::WRL::ComPtr<ID3D11Device> device)
 {
 	/*
 	DirectX::XMFLOAT4 red = DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
@@ -75,7 +75,7 @@ Mesh::Mesh(Vertex* vertices, int vertexCount, unsigned int* indices, int indexCo
 	// unsigned int indices[] = { 0, 1, 2 };
 	*/
 
-	this->deviceContext = deviceContext;
+	// this->deviceContext = deviceContext;
 
 	this->indicesCount = indexCount;
 
