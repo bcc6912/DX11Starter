@@ -113,6 +113,10 @@ void Game::Init()
 	ImGui_ImplDX11_Init(device.Get(), context.Get());
 
 	ImGui::StyleColorsDark();
+
+	// Assignment 5
+	this->cameras.push_back(std::make_shared<Camera>(0.0f, 0.0f, 0.0f, 1.0f, 0.001f, XM_PIDIV4, (float)this->windowWidth / this->windowHeight, true));
+	this->cameras.push_back(std::make_shared<Camera>(0.5f, 0.25f, -0.4f, 1.0f, 0.001f, -XM_PIDIV4, (float)this->windowWidth / this->windowHeight, true));
 }
 
 // --------------------------------------------------------
@@ -359,6 +363,11 @@ void Game::OnResize()
 {
 	// Handle base-level DX resize stuff
 	DXCore::OnResize();
+
+	for (std::shared_ptr<Camera> c : cameras)
+	{
+		c->UpdateProjectionMatrix((float)this->windowWidth / this->windowHeight);
+	}
 }
 
 // --------------------------------------------------------
@@ -402,6 +411,9 @@ void Game::Update(float deltaTime, float totalTime)
 
 	if (ImGui::CollapsingHeader("Meshes"))
 	{
+		// only one tint for now. will change all meshes
+		ImGui::ColorEdit4("Color Tint", &this->colorTint.x);
+
 		// creates color/offset options for each mesh
 		// loops for each mesh
 		for (int i = 0; i < meshes.size(); i++)
@@ -411,7 +423,8 @@ void Game::Update(float deltaTime, float totalTime)
 
 			if (ImGui::TreeNode("Mesh Node", "Mesh #%i", i + 1))
 			{
-				ImGui::ColorEdit4("Color Tint", &this->colorTints[i].x);
+				// removed individual tint edit temporarily
+				// ImGui::ColorEdit4("Color Tint", &this->colorTints[i].x);
 				ImGui::DragFloat3("Offset", &this->offsets[i].x, 0.01f);
 
 				ImGui::TreePop();
@@ -459,6 +472,45 @@ void Game::Update(float deltaTime, float totalTime)
 		// ImGui::TreePop();
 	}
 
+	if (ImGui::CollapsingHeader("Cameras"))
+	{
+		if (ImGui::SmallButton("Previous Camera"))
+		{
+			if (this->activeCamera != 0)
+			{
+				this->activeCamera--;
+			}
+		}
+		ImGui::SameLine();
+		if (ImGui::SmallButton("Next Camera"))
+		{
+			if (this->activeCamera != this->cameras.size() - 1)
+			{
+				this->activeCamera++;
+			}
+		}
+
+		ImGui::Spacing();
+
+		ImGui::Text("Active Camera: #%i", this->activeCamera);
+		ImGui::Spacing();
+		ImGui::Text("Current FOV: %f", this->cameras[activeCamera]->GetFOV());
+		ImGui::Spacing();
+
+		ImGui::Text("Position: X: %f", this->cameras[activeCamera]->GetTransform().GetPosition().x);
+		ImGui::SameLine();
+		ImGui::Text(" Y: %f", this->cameras[activeCamera]->GetTransform().GetPosition().y);
+		ImGui::SameLine();
+		ImGui::Text(" Z: %f", this->cameras[activeCamera]->GetTransform().GetPosition().z);
+
+		ImGui::Spacing();
+		ImGui::Text("Rotation: Roll: %f", this->cameras[activeCamera]->GetTransform().GetPitchYawRoll().x);
+		ImGui::SameLine();
+		ImGui::Text(" Pitch: %f", this->cameras[activeCamera]->GetTransform().GetPitchYawRoll().y);
+		ImGui::SameLine();
+		ImGui::Text(" Yaw: %f", this->cameras[activeCamera]->GetTransform().GetPitchYawRoll().z);
+	}
+
 	/*
 	ImGui::Text("Mesh #1");
 	ImGui::ColorEdit4("Color Tint##1", &this->colorTints[0].x);
@@ -485,6 +537,8 @@ void Game::Update(float deltaTime, float totalTime)
 	// Example input checking: Quit if the escape key is pressed
 	if (Input::GetInstance().KeyDown(VK_ESCAPE))
 		Quit();
+
+	this->cameras[activeCamera]->Update(deltaTime);
 }
 
 // --------------------------------------------------------
@@ -572,7 +626,7 @@ void Game::Draw(float deltaTime, float totalTime)
 		// assignment 4
 		for (std::shared_ptr<GameEntity> g : entities)
 		{
-			g->Draw(context, vsConstantBuffer);
+			g->Draw(context, vsConstantBuffer, this->colorTint, this->cameras[activeCamera]);
 		}
 
 	}

@@ -24,6 +24,9 @@ public:
 	XMFLOAT3 GetScale();
 	XMFLOAT4X4 GetWorldMatrix();
 	XMFLOAT4X4 GetWorldInverseTransposeMatrix();
+	XMFLOAT3 GetRight();
+	XMFLOAT3 GetUp();
+	XMFLOAT3 GetForward();
 
 	// transformers
 	void MoveAbsolute(float x, float y, float z);
@@ -32,12 +35,18 @@ public:
 	void Rotate(XMFLOAT3 rotation);
 	void Scale(float x, float y, float z);
 	void Scale(XMFLOAT3 scale);
+	void MoveRelative(float x, float y, float z);
+	void MoveRelative(XMFLOAT3 offset);
 private:
 	XMFLOAT3 position;
 	XMFLOAT3 scale;
 	XMFLOAT3 pitchYawRoll;
 	XMFLOAT4X4 worldMatrix;
 	XMFLOAT4X4 worldInverseTransposeMatrix;
+
+	XMFLOAT3 rightVector;
+	XMFLOAT3 upVector;
+	XMFLOAT3 forwardVector;
 
 	// helper method for getters
 	void UpdateMatrices();

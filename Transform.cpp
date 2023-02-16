@@ -8,6 +8,11 @@ Transform::Transform()
 	this->scale = XMFLOAT3(1.0f, 1.0f, 1.0f);
 	this->pitchYawRoll = XMFLOAT3(0.0f, 0.0f, 0.0f);
 
+	this->rightVector = XMFLOAT3(1.0f, 0.0f, 0.0f);
+	this->upVector = XMFLOAT3(0.0f, 1.0f, 0.0f);
+	this->forwardVector = XMFLOAT3(0.0f, 0.0f, 1.0f);
+
+
 	XMStoreFloat4x4(&worldMatrix, XMMatrixIdentity());
 	XMStoreFloat4x4(&worldInverseTransposeMatrix, XMMatrixIdentity());
 }
@@ -128,6 +133,70 @@ void Transform::Scale(XMFLOAT3 scale)
 	this->scale.x += scale.x;
 	this->scale.y += scale.y;
 	this->scale.z += scale.z;
+}
+
+void Transform::MoveRelative(float x, float y, float z)
+{
+	// store parameters and quaternion of current rotation as vectors
+	XMVECTOR moveVector = XMVectorSet(x, y, z, 1.0f);
+	XMVECTOR moveQuat = XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3(&this->pitchYawRoll));
+
+	// use above vectors to rotate direction
+	XMVECTOR relativeDir = XMVector3Rotate(moveVector, moveQuat);
+
+	// move current position using relativeDir
+	XMStoreFloat3(&this->position, XMLoadFloat3(&this->position) + relativeDir);
+}
+
+void Transform::MoveRelative(XMFLOAT3 offset)
+{
+	// store parameter and quaternion of current rotation as vectors
+	XMVECTOR moveVector = XMVectorSet(offset.x, offset.y, offset.z, 1.0f);
+	XMVECTOR moveQuat = XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3(&this->pitchYawRoll));
+
+	// use above vectors to rotate direction
+	XMVECTOR relativeDir = XMVector3Rotate(moveVector, moveQuat);
+
+	// XMVECTOR positionVector = XMLoadFloat3(&this->position);
+
+	// move current position using relativeDir
+	XMStoreFloat3(&this->position, XMLoadFloat3(&this->position) + relativeDir);
+}
+
+XMFLOAT3 Transform::GetRight()
+{
+	XMVECTOR rotVector = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
+	XMVECTOR rotQuat = XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3(&this->pitchYawRoll));
+
+	XMVECTOR relativeDir = XMVector3Rotate(rotVector, rotQuat);
+
+	XMStoreFloat3(&this->rightVector, relativeDir);
+
+	return this->rightVector;
+}
+
+XMFLOAT3 Transform::GetUp()
+{
+	XMVECTOR rotVector = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+	XMVECTOR rotQuat = XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3(&this->pitchYawRoll));
+
+	XMVECTOR relativeDir = XMVector3Rotate(rotVector, rotQuat);
+
+	XMStoreFloat3(&this->upVector, relativeDir);
+
+	return this->upVector;
+}
+
+XMFLOAT3 Transform::GetForward()
+{
+	XMVECTOR rotVector = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
+	XMVECTOR rotQuat = XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3(&this->pitchYawRoll));
+
+	XMVECTOR relativeDir = XMVector3Rotate(rotVector, rotQuat);
+
+	XMStoreFloat3(&this->forwardVector, relativeDir);
+
+	return this->forwardVector;
 }
 
 Transform::~Transform()

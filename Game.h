@@ -7,6 +7,7 @@
 #include <memory>
 #include <vector>
 #include "GameEntity.h"
+#include "Camera.h"
 
 class Game
 	: public DXCore
@@ -54,10 +55,17 @@ private:
 
 	// different tints for each mesh
 	// must add a new item manually to use on new mesh
-	std::vector<DirectX::XMFLOAT4> colorTints{ DirectX::XMFLOAT4(1.0f, 0.5f, 0.5f, 1.0f), DirectX::XMFLOAT4(1.0f, 0.5f, 0.5f, 1.0f), DirectX::XMFLOAT4(1.0f, 0.5f, 0.5f, 1.0f) };
+	// removed individual tint edit temporarily
+	// std::vector<DirectX::XMFLOAT4> colorTints{ DirectX::XMFLOAT4(1.0f, 0.5f, 0.5f, 1.0f), DirectX::XMFLOAT4(1.0f, 0.5f, 0.5f, 1.0f), DirectX::XMFLOAT4(1.0f, 0.5f, 0.5f, 1.0f) };
 	std::vector<DirectX::XMFLOAT3> offsets{ DirectX::XMFLOAT3(0.25f, 0.0f, 0.0f), DirectX::XMFLOAT3(0.25f, 0.0f, 0.0f), DirectX::XMFLOAT3(0.25f, 0.0f, 0.0f) };
 
 	// Assignment 4
 	std::vector<std::shared_ptr<GameEntity>> entities;
+
+	// Assignment 5
+	// std::shared_ptr<Camera> camera;
+	DirectX::XMFLOAT4 colorTint = DirectX::XMFLOAT4(1.0f, 0.5f, 0.5f, 1.0f);
+	std::vector<std::shared_ptr<Camera>> cameras;
+	int activeCamera = 0;
 };
 

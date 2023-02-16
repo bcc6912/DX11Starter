@@ -23,11 +23,13 @@ std::shared_ptr<Transform> GameEntity::GetTransform()
 	return this->transform;
 }
 
-void GameEntity::Draw(Microsoft::WRL::ComPtr<ID3D11DeviceContext> context, Microsoft::WRL::ComPtr<ID3D11Buffer> vsConstantBuffer)
+void GameEntity::Draw(Microsoft::WRL::ComPtr<ID3D11DeviceContext> context, Microsoft::WRL::ComPtr<ID3D11Buffer> vsConstantBuffer, DirectX::XMFLOAT4 colorTint, std::shared_ptr<Camera> camera)
 {
 	VertexShaderExternalData vsData;
-	vsData.colorTint = XMFLOAT4(1.0f, 0.5f, 0.5f, 1.0f);;
+	vsData.colorTint = colorTint;
 	vsData.worldMatrix = this->transform->GetWorldMatrix();
+	vsData.viewMatrix = camera->GetView();
+	vsData.projectionMatrix = camera->GetProjection();
 
 	D3D11_MAPPED_SUBRESOURCE mappedBuffer = {};
 
