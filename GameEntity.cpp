@@ -1,11 +1,11 @@
 #include "GameEntity.h"
 #include "Vertex.h"
-#include "BufferStructs.h"
 
-GameEntity::GameEntity(std::shared_ptr<Mesh> mesh)
+GameEntity::GameEntity(std::shared_ptr<Mesh> mesh, std::shared_ptr<Material> material)
 {
 	this->mesh = mesh;
 	this->transform = std::make_shared<Transform>();
+	this->material = material;
 }
 
 GameEntity::~GameEntity()
@@ -23,19 +23,53 @@ std::shared_ptr<Transform> GameEntity::GetTransform()
 	return this->transform;
 }
 
-void GameEntity::Draw(Microsoft::WRL::ComPtr<ID3D11DeviceContext> context, Microsoft::WRL::ComPtr<ID3D11Buffer> vsConstantBuffer, DirectX::XMFLOAT4 colorTint, std::shared_ptr<Camera> camera)
+std::shared_ptr<Material> GameEntity::GetMaterial()
 {
+	return this->material;
+}
+
+void GameEntity::SetMaterial(std::shared_ptr<Material> newMaterial)
+{
+	this->material = newMaterial;
+}
+
+void GameEntity::Draw(Microsoft::WRL::ComPtr<ID3D11DeviceContext> context, DirectX::XMFLOAT4 colorTint, std::shared_ptr<Camera> camera)
+{
+	this->material->GetVertexShader()->SetShader();
+	this->material->GetPixelShader()->SetShader();
+
+	/*
+	* Commented out for Assignment 6
 	VertexShaderExternalData vsData;
 	vsData.colorTint = colorTint;
 	vsData.worldMatrix = this->transform->GetWorldMatrix();
 	vsData.viewMatrix = camera->GetView();
 	vsData.projectionMatrix = camera->GetProjection();
+	*/
 
+	this->material->SetColorTint(colorTint);
+
+	std::shared_ptr<SimpleVertexShader> vertexShader = this->material->GetVertexShader();
+	// vertexShader->SetFloat4("colorTint", this->material->GetColorTint());
+	vertexShader->SetMatrix4x4("world", this->transform->GetWorldMatrix());
+	vertexShader->SetMatrix4x4("view", camera->GetView());
+	vertexShader->SetMatrix4x4("projection", camera->GetProjection());
+
+	std::shared_ptr<SimplePixelShader> pixelShader = this->material->GetPixelShader();
+	pixelShader->SetFloat4("colorTint", this->material->GetColorTint());
+
+	/*
+	* commented out for Assignment 6
 	D3D11_MAPPED_SUBRESOURCE mappedBuffer = {};
 
 	context->Map(vsConstantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedBuffer);
 	memcpy(mappedBuffer.pData, &vsData, sizeof(vsData));
 	context->Unmap(vsConstantBuffer.Get(), 0);
+	*/
+
+	vertexShader->CopyAllBufferData();
+
+	pixelShader->CopyAllBufferData();
 
 	this->mesh->Draw(context);
 }

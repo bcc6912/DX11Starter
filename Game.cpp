@@ -2,7 +2,6 @@
 #include "Vertex.h"
 #include "Input.h"
 #include "Helpers.h"
-#include "BufferStructs.h"
 
 #include "ImGui/imgui.h"
 #include "ImGui/imgui_impl_dx11.h"
@@ -69,6 +68,7 @@ void Game::Init()
 	// geometry to draw and some simple camera matrices.
 	//  - You'll be expanding and/or replacing these later
 	LoadShaders();
+
 	CreateGeometry();
 	
 	// Set initial graphics API state
@@ -89,10 +89,12 @@ void Game::Init()
 		// Set the active vertex and pixel shaders
 		//  - Once you start applying different shaders to different objects,
 		//    these calls will need to happen multiple times per frame
-		context->VSSetShader(vertexShader.Get(), 0, 0);
-		context->PSSetShader(pixelShader.Get(), 0, 0);
+		// context->VSSetShader(vertexShader.Get(), 0, 0);
+		// context->PSSetShader(pixelShader.Get(), 0, 0);
 	}
 
+	/*
+	* Commented out for Assigment 6
 	// Get size as the next multiple of 16 (instead of hardcoding a size here!)
 	unsigned int size = sizeof(VertexShaderExternalData);
 	size = (size + 15) / 16 * 16; // This will work even if the struct size changes
@@ -105,6 +107,7 @@ void Game::Init()
 	cbDesc.Usage = D3D11_USAGE_DYNAMIC;
 
 	device->CreateBuffer(&cbDesc, 0, vsConstantBuffer.GetAddressOf());
+	*/
 
 	// Initialize ImGui
 	IMGUI_CHECKVERSION();
@@ -115,8 +118,8 @@ void Game::Init()
 	ImGui::StyleColorsDark();
 
 	// Assignment 5
-	this->cameras.push_back(std::make_shared<Camera>(0.0f, 0.0f, 0.0f, 1.0f, 0.001f, XM_PIDIV4, (float)this->windowWidth / this->windowHeight, true));
-	this->cameras.push_back(std::make_shared<Camera>(0.5f, 0.25f, -0.4f, 1.0f, 0.001f, -XM_PIDIV4, (float)this->windowWidth / this->windowHeight, true));
+	this->cameras.push_back(std::make_shared<Camera>(0.0f, 2.5f, -20.0f, 1.0f, 0.001f, XM_PIDIV4, (float)this->windowWidth / this->windowHeight, true));
+	this->cameras.push_back(std::make_shared<Camera>(-0.3f, 2.5f, -20.4f, 1.0f, 0.001f, -XM_PIDIV4, (float)this->windowWidth / this->windowHeight, true));
 }
 
 // --------------------------------------------------------
@@ -129,6 +132,7 @@ void Game::Init()
 // --------------------------------------------------------
 void Game::LoadShaders()
 {
+	/*
 	// BLOBs (or Binary Large OBjects) for reading raw data from external files
 	// - This is a simplified way of handling big chunks of external data
 	// - Literally just a big array of bytes read from a file
@@ -187,6 +191,11 @@ void Game::LoadShaders()
 			vertexShaderBlob->GetBufferSize(),		// Size of the shader code that uses this layout
 			inputLayout.GetAddressOf());			// Address of the resulting ID3D11InputLayout pointer
 	}
+	*/
+
+	this->vertexShader = std::make_shared<SimpleVertexShader>(this->device, this->context, FixPath(L"VertexShader.cso").c_str());
+	this->pixelShader = std::make_shared<SimplePixelShader>(this->device, this->context, FixPath(L"PixelShader.cso").c_str());
+	this->customPShader = std::make_shared<SimplePixelShader>(this->device, this->context, FixPath(L"CustomPS.cso").c_str());
 }
 
 
@@ -284,7 +293,12 @@ void Game::CreateGeometry()
 	}
 	*/
 
+	materials.push_back(std::make_shared<Material>(XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), this->vertexShader, this->pixelShader));
+	materials.push_back(std::make_shared<Material>(XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f), this->vertexShader, this->pixelShader));
+	materials.push_back(std::make_shared<Material>(XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f), this->vertexShader, this->pixelShader));
+	materials.push_back(std::make_shared<Material>(XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f), this->vertexShader, this->customPShader));
 
+	/*
 	// colors for meshes
 	XMFLOAT4 red = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
 	XMFLOAT4 green = XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
@@ -297,47 +311,47 @@ void Game::CreateGeometry()
 
 	Vertex vertices0[] =
 	{
-		{ XMFLOAT3(+0.0f, +0.5f, +0.0f), red },
-		{ XMFLOAT3(+0.5f, -0.5f, +0.0f), blue },
-		{ XMFLOAT3(-0.5f, -0.5f, +0.0f), green }
+		{ XMFLOAT3(+0.0f, +0.5f, +0.0f), XMFLOAT3(0, 0, -1), XMFLOAT2(0, 0)},
+		{ XMFLOAT3(+0.5f, -0.5f, +0.0f), XMFLOAT3(0, 0, -1), XMFLOAT2(0, 0) },
+		{ XMFLOAT3(-0.5f, -0.5f, +0.0f), XMFLOAT3(0, 0, -1), XMFLOAT2(0, 0) }
 	};
 
 	unsigned int indices0[] = { 0, 1, 2 };
 
-	meshes[0] = std::make_shared<Mesh>(vertices0, 3, indices0, 3, device);
+	// meshes[0] = std::make_shared<Mesh>(vertices0, 3, indices0, 3, device);
 
 	Vertex vertices1[] =
 	{
-		{ XMFLOAT3(-0.7f, +0.8f, +0.0f), white },
-		{ XMFLOAT3(-0.75f, +0.75f, +0.0f), gray },
-		{ XMFLOAT3(-0.8f, +0.8f, +0.0f), white },
-		{ XMFLOAT3(-0.75f, +0.85f, +0.0f), gray }
+		{ XMFLOAT3(-0.7f, +0.8f, +0.0f), XMFLOAT3(0, 0, -1), XMFLOAT2(0, 0) },
+		{ XMFLOAT3(-0.75f, +0.75f, +0.0f), XMFLOAT3(0, 0, -1), XMFLOAT2(0, 0) },
+		{ XMFLOAT3(-0.8f, +0.8f, +0.0f), XMFLOAT3(0, 0, -1), XMFLOAT2(0, 0) },
+		{ XMFLOAT3(-0.75f, +0.85f, +0.0f), XMFLOAT3(0, 0, -1), XMFLOAT2(0, 0) }
 	};
 
 	unsigned int indices1[] = { 0, 1, 2, 2, 3, 0 };
 
-	meshes[1] = std::make_shared<Mesh>(vertices1, 6, indices1, 6, device);
+	// meshes[1] = std::make_shared<Mesh>(vertices1, 6, indices1, 6, device);
 
 	Vertex vertices2[] =
 	{
-		{ XMFLOAT3(+0.65f, -0.5f, +0.0f), purple },
-		{ XMFLOAT3(+0.7f, -0.6f, +0.0f), pink },
-		{ XMFLOAT3(+0.75f, -0.5f, +0.0f), purple },
-		{ XMFLOAT3(+0.6f, -0.6f, +0.0f), pink },
-		{ XMFLOAT3(+0.8f, -0.6f, +0.0f), pink },
-		{ XMFLOAT3(+0.7f, -0.9f, +0.0f), purple }
+		{ XMFLOAT3(+0.65f, -0.5f, +0.0f), XMFLOAT3(0, 0, -1), XMFLOAT2(0, 0) },
+		{ XMFLOAT3(+0.7f, -0.6f, +0.0f), XMFLOAT3(0, 0, -1), XMFLOAT2(0, 0) },
+		{ XMFLOAT3(+0.75f, -0.5f, +0.0f), XMFLOAT3(0, 0, -1), XMFLOAT2(0, 0) },
+		{ XMFLOAT3(+0.6f, -0.6f, +0.0f), XMFLOAT3(0, 0, -1), XMFLOAT2(0, 0) },
+		{ XMFLOAT3(+0.8f, -0.6f, +0.0f), XMFLOAT3(0, 0, -1), XMFLOAT2(0, 0) },
+		{ XMFLOAT3(+0.7f, -0.9f, +0.0f), XMFLOAT3(0, 0, -1), XMFLOAT2(0, 0) }
 	};
 
 	unsigned int indices2[] = { 3, 0, 1, 1, 2, 4, 4, 5, 3 };
 
-	meshes[2] = std::make_shared<Mesh>(vertices2, 9, indices2, 9, device);
+	// meshes[2] = std::make_shared<Mesh>(vertices2, 9, indices2, 9, device);
 
 	// create entities
-	std::shared_ptr<GameEntity> entity1 = std::make_shared<GameEntity>(meshes[0]);
-	std::shared_ptr<GameEntity> entity2 = std::make_shared<GameEntity>(meshes[0]);
-	std::shared_ptr<GameEntity> entity3 = std::make_shared<GameEntity>(meshes[1]);
-	std::shared_ptr<GameEntity> entity4 = std::make_shared<GameEntity>(meshes[1]);
-	std::shared_ptr<GameEntity> entity5 = std::make_shared<GameEntity>(meshes[2]);
+	std::shared_ptr<GameEntity> entity1 = std::make_shared<GameEntity>(meshes[0], materials[0]);
+	std::shared_ptr<GameEntity> entity2 = std::make_shared<GameEntity>(meshes[0], materials[1]);
+	std::shared_ptr<GameEntity> entity3 = std::make_shared<GameEntity>(meshes[1], materials[1]);
+	std::shared_ptr<GameEntity> entity4 = std::make_shared<GameEntity>(meshes[1], materials[2]);
+	std::shared_ptr<GameEntity> entity5 = std::make_shared<GameEntity>(meshes[2], materials[2]);
 
 	// transform entities
 	entity1->GetTransform()->Rotate(0.0f, 0.0f, 0.5f);
@@ -351,6 +365,41 @@ void Game::CreateGeometry()
 	entities.push_back(entity3);
 	entities.push_back(entity4);
 	entities.push_back(entity5);
+	*/
+
+	meshes[0] = std::make_shared<Mesh>(FixPath(L"../../Assets/Models/sphere.obj").c_str(), this->device);
+	meshes[1] = std::make_shared<Mesh>(FixPath(L"../../Assets/Models/cube.obj").c_str(), this->device);
+	meshes[2] = std::make_shared<Mesh>(FixPath(L"../../Assets/Models/helix.obj").c_str(), this->device);
+	meshes.push_back(std::make_shared<Mesh>(FixPath(L"../../Assets/Models/cylinder.obj").c_str(), this->device));
+	// meshes.push_back(std::make_shared<Mesh>(FixPath(L"../../Assets/Models/quad.obj").c_str(), this->device));
+	meshes.push_back(std::make_shared<Mesh>(FixPath(L"../../Assets/Models/quad_double_sided.obj").c_str(), this->device));
+	meshes.push_back(std::make_shared<Mesh>(FixPath(L"../../Assets/Models/torus.obj").c_str(), this->device));
+
+
+	std::shared_ptr<GameEntity> entity1 = std::make_shared<GameEntity>(meshes[0], materials[3]);
+	std::shared_ptr<GameEntity> entity2 = std::make_shared<GameEntity>(meshes[1], materials[3]);
+	std::shared_ptr<GameEntity> entity3 = std::make_shared<GameEntity>(meshes[2], materials[3]);
+	std::shared_ptr<GameEntity> entity4 = std::make_shared<GameEntity>(meshes[3], materials[3]);
+	std::shared_ptr<GameEntity> entity5 = std::make_shared<GameEntity>(meshes[4], materials[3]);
+	std::shared_ptr<GameEntity> entity6 = std::make_shared<GameEntity>(meshes[5], materials[3]);
+	// std::shared_ptr<GameEntity> entity7 = std::make_shared<GameEntity>(meshes[6], materials[0]);
+
+	entity1->GetTransform()->MoveAbsolute(-12.0f, 0.0f, 0.0f);
+	entity2->GetTransform()->MoveAbsolute(-8.0f, 0.0f, 0.0f);
+	entity3->GetTransform()->MoveAbsolute(-4.0f, 0.0f, 0.0f);
+	entity4->GetTransform()->MoveAbsolute(0.0f, 0.0f, 0.0f);
+	entity5->GetTransform()->MoveAbsolute(4.0f, 0.0f, 0.0f);
+	entity6->GetTransform()->MoveAbsolute(8.0f, 0.0f, 0.0f);
+	// entity7->GetTransform()->MoveAbsolute(12.0f, 0.0f, 0.0f);
+
+	entities.push_back(entity1);
+	entities.push_back(entity2);
+	entities.push_back(entity3);
+	entities.push_back(entity4);
+	entities.push_back(entity5);
+	entities.push_back(entity6);
+	// entities.push_back(entity7);
+
 }
 
 
@@ -425,12 +474,13 @@ void Game::Update(float deltaTime, float totalTime)
 			{
 				// removed individual tint edit temporarily
 				// ImGui::ColorEdit4("Color Tint", &this->colorTints[i].x);
-				ImGui::DragFloat3("Offset", &this->offsets[i].x, 0.01f);
+				ImGui::Text("%d indices", meshes[i]->GetIndexCount());
 
 				ImGui::TreePop();
 			}
 			ImGui::PopID();
 		}
+
 		// ImGui::TreePop();
 		ImGui::Spacing();
 	}
@@ -531,8 +581,10 @@ void Game::Update(float deltaTime, float totalTime)
 	for (std::shared_ptr<GameEntity> g : entities)
 	{
 		std::shared_ptr<Transform> transform = g->GetTransform();
-		transform->Rotate(0.0f, 0.0f, -deltaTime * 0.5f);
+		// transform->Rotate(0.0f, 0.0f, -deltaTime * 0.5f);
 	}
+	std::shared_ptr<Transform> helixTransform = entities[2]->GetTransform();
+	helixTransform->Rotate(0.0f, -deltaTime * 0.5f, 0.0f);
 
 	// Example input checking: Quit if the escape key is pressed
 	if (Input::GetInstance().KeyDown(VK_ESCAPE))
@@ -557,11 +609,14 @@ void Game::Draw(float deltaTime, float totalTime)
 	// context->Map(vsConstantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedBuffer);
 	// memcpy(mappedBuffer.pData, &vsData, sizeof(vsData));
 	// context->Unmap(vsConstantBuffer.Get(), 0);
-
+	
+	/*
+	* Commented out for Assingment 6
 	context->VSSetConstantBuffers(
 		0, // Which slot (register) to bind the buffer to?
 		1, // How many are we activating? Can do multiple at once
 		vsConstantBuffer.GetAddressOf()); // Array of buffers (or the address of one)
+	*/
 
 	// Frame START
 	// - These things should happen ONCE PER FRAME
@@ -623,11 +678,37 @@ void Game::Draw(float deltaTime, float totalTime)
 		}
 		*/
 
+		// materials[3]->GetPixelShader()->SetFloat("time", deltaTime);
+
+		if (timerUp)
+		{
+			timer += deltaTime;
+			materials[3]->GetPixelShader()->SetFloat("timer", timer);
+			if (timer >= 1.5f)
+			{
+				timerUp = false;
+			}
+		}
+		else
+		{
+			timer -= deltaTime;
+			materials[3]->GetPixelShader()->SetFloat("timer", timer);
+			if (timer <= 0.0f)
+			{
+				timerUp = true;
+			}
+		}
+		
+		materials[3]->GetPixelShader()->SetFloat("time", totalTime);
+
 		// assignment 4
 		for (std::shared_ptr<GameEntity> g : entities)
 		{
-			g->Draw(context, vsConstantBuffer, this->colorTint, this->cameras[activeCamera]);
+			g->Draw(context, this->colorTint, this->cameras[activeCamera]);
 		}
+
+		// materials[3]->GetPixelShader()->SetFloat2("random", 
+
 
 	}
 

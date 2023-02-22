@@ -8,6 +8,8 @@
 #include <vector>
 #include "GameEntity.h"
 #include "Camera.h"
+#include "SimpleShader.h"
+#include "Material.h"
 
 class Game
 	: public DXCore
@@ -40,15 +42,16 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11Buffer> indexBuffer;
 
 	// Shaders and shader-related constructs
-	Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShader;
-	Microsoft::WRL::ComPtr<ID3D11VertexShader> vertexShader;
+	// Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShader;
+	// Microsoft::WRL::ComPtr<ID3D11VertexShader> vertexShader;
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> inputLayout;
 
 	// holds meshes
 	std::vector<std::shared_ptr<Mesh>> meshes{ std::shared_ptr<Mesh>(), std::shared_ptr<Mesh>(), std::shared_ptr<Mesh>()};
 
 	// Assignment 3
-	Microsoft::WRL::ComPtr<ID3D11Buffer> vsConstantBuffer;
+	// Removed for assignment 6
+	// Microsoft::WRL::ComPtr<ID3D11Buffer> vsConstantBuffer;
 
 	// DirectX::XMFLOAT4 colorTint = DirectX::XMFLOAT4(1.0f, 0.5f, 0.5f, 1.0f);
 	// DirectX::XMFLOAT3 offset = DirectX::XMFLOAT3(0.25f, 0.0f, 0.0f);
@@ -67,5 +70,13 @@ private:
 	DirectX::XMFLOAT4 colorTint = DirectX::XMFLOAT4(1.0f, 0.5f, 0.5f, 1.0f);
 	std::vector<std::shared_ptr<Camera>> cameras;
 	int activeCamera = 0;
+
+	// Assignment 6
+	std::shared_ptr<SimpleVertexShader> vertexShader;
+	std::shared_ptr<SimplePixelShader> pixelShader;
+	std::vector<std::shared_ptr<Material>> materials;
+	std::shared_ptr<SimplePixelShader> customPShader;
+	float timer = 0.0f;
+	bool timerUp = true;
 };
 

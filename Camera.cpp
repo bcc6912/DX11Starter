@@ -34,19 +34,47 @@ void Camera::Update(float deltaTime)
 
 	if (input.KeyDown('W'))
 	{
-		this->transform.MoveRelative(0.0f, 0.0f, this->movementSpeed * deltaTime);
+		if (input.KeyDown(VK_LSHIFT))
+		{
+			this->transform.MoveRelative(0.0f, 0.0f, this->movementSpeed * deltaTime * 2);
+		}
+		else
+		{
+			this->transform.MoveRelative(0.0f, 0.0f, this->movementSpeed * deltaTime);
+		}
 	}
 	if (input.KeyDown('A'))
 	{
-		this->transform.MoveRelative(-this->movementSpeed * deltaTime, 0.0f, 0.0f);
+		if (input.KeyDown(VK_LSHIFT))
+		{
+			this->transform.MoveRelative(-this->movementSpeed * deltaTime * 2, 0.0f, 0.0f);
+		}
+		else
+		{
+			this->transform.MoveRelative(-this->movementSpeed * deltaTime, 0.0f, 0.0f);
+		}
 	}
 	if (input.KeyDown('S'))
 	{
-		this->transform.MoveRelative(0.0f, 0.0f, -this->movementSpeed * deltaTime);
+		if (input.KeyDown(VK_SHIFT))
+		{
+			this->transform.MoveRelative(0.0f, 0.0f, -this->movementSpeed * deltaTime * 2);
+		}
+		else
+		{
+			this->transform.MoveRelative(0.0f, 0.0f, -this->movementSpeed * deltaTime);
+		}
 	}
 	if (input.KeyDown('D'))
 	{
-		this->transform.MoveRelative(this->movementSpeed * deltaTime, 0.0f, 0.0f);
+		if (input.KeyDown(VK_SHIFT))
+		{
+			this->transform.MoveRelative(this->movementSpeed * deltaTime * 2, 0.0f, 0.0f);
+		}
+		else
+		{
+			this->transform.MoveRelative(this->movementSpeed * deltaTime, 0.0f, 0.0f);
+		}
 	}
 	if (input.KeyDown(' '))
 	{
@@ -76,7 +104,7 @@ XMFLOAT4X4 Camera::GetView()
 
 XMFLOAT4X4 Camera::GetProjection()
 {
-	return this->viewMatrix;
+	return this->projectionMatrix;
 }
 
 float Camera::GetFOV()
