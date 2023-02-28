@@ -55,6 +55,10 @@ void GameEntity::Draw(Microsoft::WRL::ComPtr<ID3D11DeviceContext> context, Direc
 	vertexShader->SetMatrix4x4("view", camera->GetView());
 	vertexShader->SetMatrix4x4("projection", camera->GetProjection());
 
+	// Assignment 7
+	// Normals & World Position (Task 5)
+	vertexShader->SetMatrix4x4("worldInverseTranspose", this->transform->GetWorldInverseTransposeMatrix());
+
 	std::shared_ptr<SimplePixelShader> pixelShader = this->material->GetPixelShader();
 	pixelShader->SetFloat4("colorTint", this->material->GetColorTint());
 

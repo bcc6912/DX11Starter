@@ -78,11 +78,25 @@ void Camera::Update(float deltaTime)
 	}
 	if (input.KeyDown(' '))
 	{
-		this->transform.MoveAbsolute(0.0f, this->movementSpeed * deltaTime, 0.0f);
+		if (input.KeyDown(VK_LSHIFT))
+		{
+			this->transform.MoveAbsolute(0.0f, this->movementSpeed * deltaTime * 2, 0.0f);
+		}
+		else
+		{
+			this->transform.MoveAbsolute(0.0f, this->movementSpeed * deltaTime, 0.0f);
+		}
 	}
 	if (input.KeyDown('X'))
 	{
-		this->transform.MoveAbsolute(0.0f, -this->movementSpeed * deltaTime, 0.0f);
+		if (input.KeyDown(VK_LSHIFT))
+		{
+			this->transform.MoveAbsolute(0.0f, -this->movementSpeed * deltaTime * 2, 0.0f);
+		}
+		else
+		{
+			this->transform.MoveAbsolute(0.0f, -this->movementSpeed * deltaTime, 0.0f);
+		}
 	}
 
 	// check for mouse movement when dragging

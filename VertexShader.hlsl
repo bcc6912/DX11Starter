@@ -1,12 +1,15 @@
+#include "ShaderIncludes.hlsli"
+
 cbuffer ExternalData : register(b0)
 {
 	// float4 colorTint;
 	matrix world;
 	matrix view;
 	matrix projection;
+	matrix worldInverseTranspose;
 }
 
-
+/*
 // Struct representing a single vertex worth of data
 // - This should match the vertex definition in our C++ code
 // - By "match", I mean the size, order and number of members
@@ -42,6 +45,7 @@ struct VertexToPixel
 	float3 normal			: NORMAL;
 	float2 uv				: TEXCOORD;
 };
+*/
 
 // --------------------------------------------------------
 // The entry point (main method) for our vertex shader
@@ -73,8 +77,15 @@ VertexToPixel main( VertexShaderInput input )
 	// - The values will be interpolated per-pixel by the rasterizer
 	// - We don't need to alter it here, but we do need to send it to the pixel shader
 	// output.color = colorTint;
-	output.normal = input.normal;
+	// 
+	// output.normal = input.normal;
 	output.uv = input.uv;
+
+	// Assignment 7
+	// Normals & World Position (Task 5)
+	output.normal = mul((float3x3)worldInverseTranspose, input.normal);
+	output.worldPosition = mul(world, float4(input.localPosition, 1)).xyz;
+
 
 	// Whatever we return will make its way through the pipeline to the
 	// next programmable stage we're using (the pixel shader for now)

@@ -1,3 +1,5 @@
+#include "ShaderIncludes.hlsli"
+
 cbuffer ExternalData : register(b0)
 {
 	float4 colorTint;
@@ -5,6 +7,7 @@ cbuffer ExternalData : register(b0)
 	float timer;
 }
 
+/*
 struct VertexToPixel
 {
 	// Data type
@@ -17,6 +20,7 @@ struct VertexToPixel
 	float3 normal			: NORMAL;
 	float2 uv				: TEXCOORD;
 };
+*/
 
 float4 main(VertexToPixel input) : SV_TARGET
 {

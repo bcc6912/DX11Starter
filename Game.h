@@ -10,6 +10,7 @@
 #include "Camera.h"
 #include "SimpleShader.h"
 #include "Material.h"
+#include "Lights.h"
 
 class Game
 	: public DXCore
@@ -67,7 +68,7 @@ private:
 
 	// Assignment 5
 	// std::shared_ptr<Camera> camera;
-	DirectX::XMFLOAT4 colorTint = DirectX::XMFLOAT4(1.0f, 0.5f, 0.5f, 1.0f);
+	DirectX::XMFLOAT4 colorTint = DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	std::vector<std::shared_ptr<Camera>> cameras;
 	int activeCamera = 0;
 
@@ -78,5 +79,19 @@ private:
 	std::shared_ptr<SimplePixelShader> customPShader;
 	float timer = 0.0f;
 	bool timerUp = true;
+
+	// Assignment 7
+	// Ambient (Task 4)
+	DirectX::XMFLOAT3 ambientColor = DirectX::XMFLOAT3(0.1f, 0.1f, 0.25f);
+	// Light (Task 6)
+	Light directionalLight1 = {};
+	// More Lights (Task 8)
+	Light directionalLight2 = {};
+	Light directionalLight3 = {};
+	// Point Lights (Task 9)
+	Light pointLight1 = {};
+	Light pointLight2 = {};
+
+	std::vector<Light> lights;
 };
 
