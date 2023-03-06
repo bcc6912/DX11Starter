@@ -48,4 +48,58 @@ void Material::PrepareMaterial(float roughness, XMFLOAT3 cameraPosition)
 	this->roughness = roughness;
 	this->pixelShader->SetFloat("roughness", this->roughness);
 	this->pixelShader->SetFloat3("cameraPosition", cameraPosition);
+
+	// Assignment 8
+	for (auto& t : this->textureSRVs)
+	{
+		this->pixelShader->SetShaderResourceView(t.first.c_str(), t.second);
+	}
+	for (auto& s : this->samplers)
+	{
+		this->pixelShader->SetSamplerState(s.first.c_str(), s.second);
+	}
+}
+
+/*
+void Material::PrepareMaterial(std::shared_ptr<Transform> transform, std::shared_ptr<Camera> camera)
+{
+	this->vertexShader->SetShader();
+	this->pixelShader->SetShader();
+	
+	this->vertexShader->SetMatrix4x4("world", transform->GetWorldMatrix());
+	this->vertexShader->SetMatrix4x4("view", camera->GetView());
+	this->vertexShader->SetMatrix4x4("projection", camera->GetProjection());
+	this->vertexShader->SetMatrix4x4("worldInverseTranspose", transform->GetWorldInverseTransposeMatrix());
+
+	this->pixelShader->SetFloat4("colorTint", this->colorTint);
+
+	this->vertexShader->CopyAllBufferData();
+
+	this->pixelShader->CopyAllBufferData();
+
+	// Assignment 8
+	for (auto& t : this->textureSRVs)
+	{
+		this->pixelShader->SetShaderResourceView(t.first.c_str(), t.second);
+	}
+	for (auto& s : this->samplers)
+	{
+		this->pixelShader->SetSamplerState(s.first.c_str(), s.second);
+	}
+}
+*/
+
+void Material::AddTextureSRV(std::string shaderName, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
+{
+	this->textureSRVs.insert({ shaderName, srv });
+}
+
+void Material::AddSampler(std::string samplerName, Microsoft::WRL::ComPtr<ID3D11SamplerState> sampler)
+{
+	this->samplers.insert({ samplerName, sampler });
+}
+
+void Material::SetRoughness(float roughness)
+{
+	this->roughness = roughness;
 }

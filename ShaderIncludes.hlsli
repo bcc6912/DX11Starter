@@ -84,25 +84,25 @@ float Attenuate(Light light, float3 worldPosition)
 
 // calculate viewVector using : normalize(cameraPosition - input.worldPosition)
 // surfaceColor should be a float3 of colorTint
-float3 DirectionalLight(Light light, float3 normal, float3 viewVector, float roughness, float3 surfaceColor)
+float3 DirectionalLight(Light light, float3 normal, float3 viewVector, float roughness, float3 surfaceColor, float specularScale)
 {
 	float3 direction = light.Direction * -1.0f;
 	float3 diffuse = DiffuseBRDF(normal, normalize(direction));
 
-	float specular = SpecularBRDF(roughness, normal, normalize(direction), viewVector);
+	float specular = SpecularBRDF(roughness, normal, normalize(direction), viewVector) * specularScale;
 
 	return ((surfaceColor * diffuse) + specular) * light.Intensity * light.Color;
 }
 
 // calculate viewVector using : normalize(cameraPosition - input.worldPosition)
 // surfaceColor should be a float3 of colorTint
-float3 PointLight(Light light, float3 normal, float3 worldPosition, float3 viewVector, float roughness, float3 surfaceColor)
+float3 PointLight(Light light, float3 normal, float3 worldPosition, float3 viewVector, float roughness, float3 surfaceColor, float specularScale)
 {
 	float3 pointDirection = normalize(light.Position - worldPosition);
 
 	float3 diffuse = DiffuseBRDF(normal, normalize(pointDirection));
 
-	float specular = SpecularBRDF(roughness, normal, normalize(pointDirection), viewVector);
+	float specular = SpecularBRDF(roughness, normal, normalize(pointDirection), viewVector) * specularScale;
 
 	float attenuation = Attenuate(light, worldPosition);
 

@@ -75,5 +75,7 @@ void GameEntity::Draw(Microsoft::WRL::ComPtr<ID3D11DeviceContext> context, Direc
 
 	pixelShader->CopyAllBufferData();
 
+	this->material->PrepareMaterial(this->material->GetRoughness(), camera->GetTransform().GetPosition());
+
 	this->mesh->Draw(context);
 }

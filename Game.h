@@ -11,6 +11,7 @@
 #include "SimpleShader.h"
 #include "Material.h"
 #include "Lights.h"
+#include "WICTextureLoader.h"
 
 class Game
 	: public DXCore
@@ -68,7 +69,7 @@ private:
 
 	// Assignment 5
 	// std::shared_ptr<Camera> camera;
-	DirectX::XMFLOAT4 colorTint = DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	DirectX::XMFLOAT4 colorTint = DirectX::XMFLOAT4(1.0f, 0.5f, 0.5f, 1.0f);
 	std::vector<std::shared_ptr<Camera>> cameras;
 	int activeCamera = 0;
 
@@ -93,5 +94,13 @@ private:
 	Light pointLight2 = {};
 
 	std::vector<Light> lights;
+
+	// Assignment 8
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> samplerState;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> metalSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> metalSpecularSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> asphaltSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> asphaltSpecularSRV;
+	float roughness = 0.5f;
 };
 

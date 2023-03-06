@@ -7,6 +7,8 @@
 #include "ImGui/imgui_impl_dx11.h"
 #include "ImGui/imgui_impl_win32.h"
 
+#include "WICTextureLoader.h"
+
 // Needed for a helper function to load pre-compiled shader files
 #pragma comment(lib, "d3dcompiler.lib")
 #include <d3dcompiler.h>
@@ -142,7 +144,7 @@ void Game::Init()
 	this->pointLight1.Type = 1;
 	// this->pointLight1.Direction = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	this->pointLight1.Color = XMFLOAT3(1.0f, 0.5f, 1.0f);
-	this->pointLight1.Intensity = 1.0f;
+	this->pointLight1.Intensity = 2.5f;
 	this->pointLight1.Range = 10.0f;
 	this->pointLight1.Position = XMFLOAT3(6.0f, 4.0f, -2.0f);
 	// pointLight2
@@ -331,12 +333,52 @@ void Game::CreateGeometry()
 	}
 	*/
 
+	// Assignment 8
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> tileSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> tileSpecularSRV;
+	// Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> metalSRV;
+	// Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> metalSpecularSRV;
+	// Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> asphaltSRV;
+	// Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> asphaltSpecularSRV;
+	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/brokentiles.png").c_str(), 0, tileSRV.GetAddressOf());
+	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/brokentiles_specular.png").c_str(), 0, tileSpecularSRV.GetAddressOf());
+	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/metalfloor.png").c_str(), 0, metalSRV.GetAddressOf());
+	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/metalfloor_specular.png").c_str(), 0, metalSpecularSRV.GetAddressOf());
+	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/asphalt.png").c_str(), 0, asphaltSRV.GetAddressOf());
+	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/asphalt_specular.png").c_str(), 0, asphaltSpecularSRV.GetAddressOf());
+
+	// AddressU, V, W should be something other than 0, but within 0 - 1 range
+
+	D3D11_SAMPLER_DESC samplerDesc = {};
+	samplerDesc.AddressU		= D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressV		= D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressW		= D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.Filter			= D3D11_FILTER_ANISOTROPIC;
+	samplerDesc.MaxAnisotropy	= 16; // value between 1 and 16 (higher = better but slower)
+	samplerDesc.MaxLOD			= D3D11_FLOAT32_MAX;
+
+	HRESULT samplerTest = this->device->CreateSamplerState(&samplerDesc, this->samplerState.GetAddressOf());
+
+
 	materials.push_back(std::make_shared<Material>(XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), this->vertexShader, this->pixelShader, 1.0f));
 	materials.push_back(std::make_shared<Material>(XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f), this->vertexShader, this->pixelShader, 1.0f));
 	materials.push_back(std::make_shared<Material>(XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f), this->vertexShader, this->pixelShader, 1.0f));
 	materials.push_back(std::make_shared<Material>(XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f), this->vertexShader, this->customPShader, 1.0f));
 
 	materials.push_back(std::make_shared<Material>(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), this->vertexShader, this->pixelShader, 0.15f));
+	materials.push_back(std::make_shared<Material>(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), this->vertexShader, this->pixelShader, 0.5f));
+
+	// Assignment 8
+	// set SRVs and samplers with SimpleShader
+	// Asphalt Texture
+	materials[4]->AddTextureSRV("SurfaceTexture", this->asphaltSRV);
+	materials[4]->AddTextureSRV("SpecularMap", this->asphaltSpecularSRV);
+	materials[4]->AddSampler("BasicSampler", this->samplerState);
+
+	// Metal Texture
+	materials[5]->AddTextureSRV("SurfaceTexture", this->metalSRV);
+	materials[5]->AddTextureSRV("SpecularMap", this->metalSpecularSRV);
+	materials[5]->AddSampler("BasicSampler", this->samplerState);
 
 	/*
 	// colors for meshes
@@ -417,11 +459,11 @@ void Game::CreateGeometry()
 
 
 	std::shared_ptr<GameEntity> entity1 = std::make_shared<GameEntity>(meshes[0], materials[4]);
-	std::shared_ptr<GameEntity> entity2 = std::make_shared<GameEntity>(meshes[1], materials[4]);
-	std::shared_ptr<GameEntity> entity3 = std::make_shared<GameEntity>(meshes[2], materials[4]);
+	std::shared_ptr<GameEntity> entity2 = std::make_shared<GameEntity>(meshes[1], materials[5]);
+	std::shared_ptr<GameEntity> entity3 = std::make_shared<GameEntity>(meshes[2], materials[5]);
 	std::shared_ptr<GameEntity> entity4 = std::make_shared<GameEntity>(meshes[3], materials[4]);
-	std::shared_ptr<GameEntity> entity5 = std::make_shared<GameEntity>(meshes[4], materials[4]);
-	std::shared_ptr<GameEntity> entity6 = std::make_shared<GameEntity>(meshes[5], materials[4]);
+	std::shared_ptr<GameEntity> entity5 = std::make_shared<GameEntity>(meshes[4], materials[5]);
+	std::shared_ptr<GameEntity> entity6 = std::make_shared<GameEntity>(meshes[5], materials[5]);
 	std::shared_ptr<GameEntity> entity7 = std::make_shared<GameEntity>(meshes[6], materials[4]);
 
 	entity1->GetTransform()->MoveAbsolute(-12.0f, 0.0f, 0.0f);
@@ -638,6 +680,35 @@ void Game::Update(float deltaTime, float totalTime)
 		// ImGui::TreePop();
 	}
 
+	if (ImGui::CollapsingHeader("Textures"))
+	{
+		ImGui::Text("Texture 1: Asphalt");
+		ImGui::Spacing();
+
+		ImGui::Image(this->asphaltSRV.Get(), ImVec2(200.0f, 200.0f));
+
+		ImGui::Spacing();
+
+		ImGui::Text("Texture 2: Metal");
+		ImGui::Spacing();
+
+		ImGui::Image(this->metalSRV.Get(), ImVec2(200.0f, 200.0f));
+
+		if (ImGui::DragFloat("Roughness", &this->roughness, 0.01f))
+		{
+			if (this->roughness < 0.00f)
+			{
+				this->roughness = 0.0f;
+			}
+			else if (this->roughness > 0.99f)
+			{
+				this->roughness = 0.99f;
+			}
+			materials[4]->SetRoughness(this->roughness);
+			materials[5]->SetRoughness(this->roughness);
+		}
+	}
+
 	if (ImGui::CollapsingHeader("Cameras"))
 	{
 		if (ImGui::TreeNode("Movement Controls"))
@@ -831,7 +902,8 @@ void Game::Draw(float deltaTime, float totalTime)
 		materials[3]->GetPixelShader()->SetFloat("time", totalTime);
 
 		// assignment 7
-		materials[4]->PrepareMaterial(materials[4]->GetRoughness(), this->cameras[activeCamera]->GetTransform().GetPosition());
+		// materials[4]->PrepareMaterial(materials[4]->GetRoughness(), this->cameras[activeCamera]->GetTransform().GetPosition());
+		// materials[5]->PrepareMaterial(materials[4]->GetRoughness(), this->cameras[activeCamera]->GetTransform().GetPosition());
 		// Light (Task 6) (Directional Light)
 		// materials[4]->GetPixelShader()->SetData("directionalLight1", &lights[0], sizeof(Light));
 		// More Directional Lights (Task 8)
@@ -840,11 +912,18 @@ void Game::Draw(float deltaTime, float totalTime)
 		// Point Lights (Task 9)
 		// materials[4]->GetPixelShader()->SetData("pointLight1", &lights[3], sizeof(Light));
 		// materials[4]->GetPixelShader()->SetData("pointLight2", &lights[4], sizeof(Light));
-		materials[4]->GetPixelShader()->SetData("lights", &lights[0], sizeof(Light) * (int)lights.size());
+		// materials[5]->PrepareMaterial(materials[5]->GetRoughness(), this->cameras[activeCamera]->GetTransform().GetPosition());
+
+		// materials[4]->GetPixelShader()->SetData("lights", &lights[0], sizeof(Light) * (int)lights.size());
+
+		
+		// materials[5]->GetPixelShader()->SetData("lights", &lights[0], sizeof(Light) * (int)lights.size());
 
 		for (std::shared_ptr<GameEntity> g : entities)
 		{
+			// g->GetMaterial()->PrepareMaterial(g->GetMaterial()->GetRoughness(), this->cameras[activeCamera]->GetTransform().GetPosition());
 			g->GetMaterial()->GetPixelShader()->SetFloat3("ambient", this->ambientColor);
+			g->GetMaterial()->GetPixelShader()->SetData("lights", &lights[0], sizeof(Light) * (int)lights.size());
 		}
 
 		// assignment 4

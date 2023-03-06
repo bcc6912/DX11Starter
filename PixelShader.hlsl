@@ -1,5 +1,9 @@
 #include "ShaderIncludes.hlsli"
 
+Texture2D SurfaceTexture	: register(t0);
+Texture2D SpecularMap		: register(t1);
+SamplerState BasicSampler	: register(s0);
+
 cbuffer ExternalData : register(b0)
 {
 	float4 colorTint;
@@ -53,6 +57,10 @@ float4 main(VertexToPixel input) : SV_TARGET
 
 	// return colorTint;
 
+	// Assignment 8
+	float3 surfaceColor = SurfaceTexture.Sample(BasicSampler, input.uv).rgb * (float3)colorTint;
+	float specularScale = SpecularMap.Sample(BasicSampler, input.uv).r;
+
 	// Assignment 7
 	// return float4(roughness.rrr, 1); // temporary
 
@@ -100,7 +108,7 @@ float4 main(VertexToPixel input) : SV_TARGET
 	// pointLight2Color = pointLight2Color * Attenuate(pointLight2, input.worldPosition);
 	// float3 pointLight2Color = PointLight(lights[4], input.normal, input.worldPosition, viewVector, roughness, (float3)colorTint);
 
-	float3 finalColor = ambient;
+	float3 finalColor = ambient * surfaceColor;
 	// finalColor += (directionalLight1.Color * DiffuseBRDF(input.normal, normalizedDirToLight));
 	// finalColor += specular;
 	// finalColor += dirLight1Color;
@@ -108,11 +116,11 @@ float4 main(VertexToPixel input) : SV_TARGET
 	// finalColor += dirLight3Color;
 	// finalColor += pointLight1Color;
 	// finalColor += pointLight2Color;
-	finalColor += DirectionalLight(lights[0], input.normal, viewVector, roughness, (float3)colorTint);
-	finalColor += DirectionalLight(lights[1], input.normal, viewVector, roughness, (float3)colorTint);
-	finalColor += DirectionalLight(lights[2], input.normal, viewVector, roughness, (float3)colorTint);
-	finalColor += PointLight(lights[3], input.normal, input.worldPosition, viewVector, roughness, (float3)colorTint);
-	finalColor += PointLight(lights[4], input.normal, input.worldPosition, viewVector, roughness, (float3)colorTint);
+	finalColor += DirectionalLight(lights[0], input.normal, viewVector, roughness, surfaceColor, specularScale);
+	finalColor += DirectionalLight(lights[1], input.normal, viewVector, roughness, surfaceColor, specularScale);
+	finalColor += DirectionalLight(lights[2], input.normal, viewVector, roughness, surfaceColor, specularScale);
+	finalColor += PointLight(lights[3], input.normal, input.worldPosition, viewVector, roughness, surfaceColor, specularScale);
+	finalColor += PointLight(lights[4], input.normal, input.worldPosition, viewVector, roughness, surfaceColor, specularScale);
 
 	return colorTint * float4(finalColor, 1.0f);
 }

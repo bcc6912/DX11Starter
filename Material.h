@@ -4,6 +4,7 @@
 
 #include <DirectXMath.h>
 #include <memory>
+#include <unordered_map>
 
 using namespace DirectX;
 
@@ -22,6 +23,9 @@ public:
 	void SetColorTint(XMFLOAT4 newColorTint);
 	void SetVertexShader(std::shared_ptr<SimpleVertexShader> newVertexShader);
 	void SetPixelShader(std::shared_ptr<SimplePixelShader> newPixelShader);
+	void AddTextureSRV(std::string shaderName, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv);
+	void AddSampler(std::string samplerName, Microsoft::WRL::ComPtr<ID3D11SamplerState> sampler);
+	void SetRoughness(float roughness);
 
 	// helpers
 	void PrepareMaterial(float roughness, XMFLOAT3 cameraPosition);
@@ -31,5 +35,9 @@ private:
 	std::shared_ptr<SimpleVertexShader> vertexShader;
 	std::shared_ptr<SimplePixelShader> pixelShader;
 	float roughness;
+	
+	// Assignment 8
+	std::unordered_map<std::string, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>> textureSRVs;
+	std::unordered_map<std::string, Microsoft::WRL::ComPtr<ID3D11SamplerState>> samplers;
 };
 
