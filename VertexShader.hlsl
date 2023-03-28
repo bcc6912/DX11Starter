@@ -86,6 +86,9 @@ VertexToPixel main( VertexShaderInput input )
 	output.normal = mul((float3x3)worldInverseTranspose, input.normal);
 	output.worldPosition = mul(world, float4(input.localPosition, 1)).xyz;
 
+	// Assignment 8
+	output.tangent = normalize(mul((float3x3)worldInverseTranspose, input.tangent));
+
 
 	// Whatever we return will make its way through the pipeline to the
 	// next programmable stage we're using (the pixel shader for now)

@@ -28,4 +28,7 @@ public:
 	
 	// Assignment 6
 	Mesh(const std::wstring& fileName, Microsoft::WRL::ComPtr<ID3D11Device> device);
+
+	// Assignment 9
+	void CalculateTangents(Vertex* verts, int numVerts, unsigned int* indices, int numIndices);
 };

@@ -92,6 +92,10 @@ void Material::PrepareMaterial(std::shared_ptr<Transform> transform, std::shared
 void Material::AddTextureSRV(std::string shaderName, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
 {
 	this->textureSRVs.insert({ shaderName, srv });
+	if (shaderName == "SpecularMap")
+	{
+		this->pixelShader->SetInt("usingSpecularMap", 1);
+	}
 }
 
 void Material::AddSampler(std::string samplerName, Microsoft::WRL::ComPtr<ID3D11SamplerState> sampler)

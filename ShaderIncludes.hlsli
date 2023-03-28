@@ -23,6 +23,7 @@ struct VertexShaderInput
 	// float4 color			: COLOR;        // RGBA color
 	float3 normal			: NORMAL;
 	float2 uv				: TEXCOORD;
+	float3 tangent			: TANGENT;
 };
 
 // ALL of your code pieces (structs, functions, etc.) go here!
@@ -40,9 +41,17 @@ struct VertexToPixel
 	//  v    v                v
 	float4 screenPosition	: SV_POSITION;	// XYZW position (System Value Position)
 	// float4 color			: COLOR;        // RGBA color
-	float3 normal			: NORMAL;
 	float2 uv				: TEXCOORD;
+	float3 normal			: NORMAL;
 	float3 worldPosition	: POSITION;
+	float3 tangent			: TANGENT;
+};
+
+// Assignment 9
+struct VertexToPixelSky
+{
+	float4 screenPosition	: SV_POSITION;
+	float3 sampleDir		: DIRECTION;
 };
 
 struct Light
@@ -91,6 +100,8 @@ float3 DirectionalLight(Light light, float3 normal, float3 viewVector, float rou
 
 	float specular = SpecularBRDF(roughness, normal, normalize(direction), viewVector) * specularScale;
 
+	specular *= any(diffuse);
+
 	return ((surfaceColor * diffuse) + specular) * light.Intensity * light.Color;
 }
 
@@ -104,9 +115,26 @@ float3 PointLight(Light light, float3 normal, float3 worldPosition, float3 viewV
 
 	float specular = SpecularBRDF(roughness, normal, normalize(pointDirection), viewVector) * specularScale;
 
+	specular *= any(diffuse);
+
 	float attenuation = Attenuate(light, worldPosition);
 
 	return ((surfaceColor * diffuse) + specular) * light.Intensity * light.Color * attenuation;
+}
+
+float3 NormalMapping(Texture2D normalMap, SamplerState basicSampler, float2 uv, float3 normal, float3 tangent)
+{
+	float3 unpackedNormal = normalMap.Sample(basicSampler, uv).rgb * 2.0f - 1.0f;
+	unpackedNormal = normalize(unpackedNormal);
+
+	// TBN Matrix
+	float3 N = normalize(normal);
+	float3 T = normalize(tangent);
+	T = normalize(T - N * dot(T, N));
+	float3 B = cross(T, N);
+	float3x3 TBN = float3x3(T, B, N);
+
+	return normalize(mul(unpackedNormal, TBN));
 }
 
 #endif

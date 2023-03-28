@@ -2,6 +2,7 @@
 
 Texture2D SurfaceTexture	: register(t0);
 Texture2D SpecularMap		: register(t1);
+Texture2D NormalMap			: register(t2);
 SamplerState BasicSampler	: register(s0);
 
 cbuffer ExternalData : register(b0)
@@ -15,6 +16,7 @@ cbuffer ExternalData : register(b0)
 	// Light directionalLight3;
 	// Light pointLight1;
 	// Light pointLight2;
+	int usingSpecularMap;
 
 	Light lights[5]; // 3 directional, 2 point IN THAT ORDER; MUST BE EXACT
 }
@@ -59,22 +61,17 @@ float4 main(VertexToPixel input) : SV_TARGET
 
 	// Assignment 8
 	float3 surfaceColor = SurfaceTexture.Sample(BasicSampler, input.uv).rgb * (float3)colorTint;
-	float specularScale = SpecularMap.Sample(BasicSampler, input.uv).r;
+	
+	float specularScale = 1.0f;
+	if (usingSpecularMap)
+	{
+		specularScale = SpecularMap.Sample(BasicSampler, input.uv).r;
+	}
 
 	// Assignment 7
-	// return float4(roughness.rrr, 1); // temporary
-
-	input.normal = normalize(input.normal);
-	// return float4(input.normal, 1); // temporary
-
-	// return float4(directionalLight1.Color, 1); // temporary
-
-	// return colorTint * float4(ambient.x, ambient.y, ambient.z, 1.0f);
-
-	// float3 normalizedDirToLight = NormalizeDirToLight(directionalLight1.Direction);
+	// input.normal = normalize(input.normal);
 
 	// Specular Reflections (Task 7)
-	//  float specExponent = (1.0f - roughness) * MAX_SPECULAR_EXPONENT;
 	float3 viewVector = normalize(cameraPosition - input.worldPosition); // V
 
 	// Below commented out because the directional light is now calculated in CalculateLightColor helper method
@@ -84,7 +81,6 @@ float4 main(VertexToPixel input) : SV_TARGET
 	float3 reflection = reflect(normalizedDirToLight, input.normal); // R
 	float spec = pow(saturate(dot(reflection, viewVector)), specExponent);
 	*/
-	// float specular = SpecularBRDF(roughness, input.normal, normalizedDirToLight, viewVector);
 
 	// directionalLight1
 	// float3 dirLight1Color = CalculateLightColor(directionalLight1.Color, directionalLight1.Direction, input.normal, viewVector, roughness);
@@ -107,6 +103,21 @@ float4 main(VertexToPixel input) : SV_TARGET
 	// float3 pointLight2Color = CalculateLightColor(pointLight2.Color, CalculatePointLightDirection(pointLight2, input.worldPosition), input.normal, viewVector, roughness);
 	// pointLight2Color = pointLight2Color * Attenuate(pointLight2, input.worldPosition);
 	// float3 pointLight2Color = PointLight(lights[4], input.normal, input.worldPosition, viewVector, roughness, (float3)colorTint);
+
+	// Assignment 9
+	/*
+	float3 unpackedNormal = NormalMap.Sample(BasicSampler, input.uv).rgb * 2 - 1;
+	unpackedNormal = normalize(unpackedNormal);
+
+	// TBN Matrix
+	float3 N = normalize(input.normal);
+	float3 T = normalize(input.tangent);
+	T = normalize(T - N * dot(T, N));
+	float3 B = cross(T, N);
+	float3x3 TBN = float3x3(T, B, N);
+	*/
+
+	input.normal = NormalMapping(NormalMap, BasicSampler, input.uv, input.normal, input.tangent);
 
 	float3 finalColor = ambient * surfaceColor;
 	// finalColor += (directionalLight1.Color * DiffuseBRDF(input.normal, normalizedDirToLight));

@@ -236,6 +236,10 @@ void Game::LoadShaders()
 	this->vertexShader = std::make_shared<SimpleVertexShader>(this->device, this->context, FixPath(L"VertexShader.cso").c_str());
 	this->pixelShader = std::make_shared<SimplePixelShader>(this->device, this->context, FixPath(L"PixelShader.cso").c_str());
 	this->customPShader = std::make_shared<SimplePixelShader>(this->device, this->context, FixPath(L"CustomPS.cso").c_str());
+
+	// Assignment 9
+	this->skyVertexShader = std::make_shared<SimpleVertexShader>(this->device, this->context, FixPath(L"SkyVertexShader.cso").c_str());
+	this->skyPixelShader = std::make_shared<SimplePixelShader>(this->device, this->context, FixPath(L"SkyPixelShader.cso").c_str());
 }
 
 
@@ -344,8 +348,10 @@ void Game::CreateGeometry()
 	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/brokentiles_specular.png").c_str(), 0, tileSpecularSRV.GetAddressOf());
 	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/metalfloor.png").c_str(), 0, metalSRV.GetAddressOf());
 	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/metalfloor_specular.png").c_str(), 0, metalSpecularSRV.GetAddressOf());
-	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/asphalt.png").c_str(), 0, asphaltSRV.GetAddressOf());
-	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/asphalt_specular.png").c_str(), 0, asphaltSpecularSRV.GetAddressOf());
+	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/metalfloor_normals.png").c_str(), 0, metalNormalSRV.GetAddressOf());
+	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/cobblestone.png").c_str(), 0, asphaltSRV.GetAddressOf());
+	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/cobblestone_specular.png").c_str(), 0, asphaltSpecularSRV.GetAddressOf());
+	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/cobblestone_normals.png").c_str(), 0, asphaltNormalSRV.GetAddressOf());
 
 	// AddressU, V, W should be something other than 0, but within 0 - 1 range
 
@@ -365,7 +371,7 @@ void Game::CreateGeometry()
 	materials.push_back(std::make_shared<Material>(XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f), this->vertexShader, this->pixelShader, 1.0f));
 	materials.push_back(std::make_shared<Material>(XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f), this->vertexShader, this->customPShader, 1.0f));
 
-	materials.push_back(std::make_shared<Material>(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), this->vertexShader, this->pixelShader, 0.15f));
+	materials.push_back(std::make_shared<Material>(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), this->vertexShader, this->pixelShader, 0.5f));
 	materials.push_back(std::make_shared<Material>(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), this->vertexShader, this->pixelShader, 0.5f));
 
 	// Assignment 8
@@ -373,11 +379,13 @@ void Game::CreateGeometry()
 	// Asphalt Texture
 	materials[4]->AddTextureSRV("SurfaceTexture", this->asphaltSRV);
 	materials[4]->AddTextureSRV("SpecularMap", this->asphaltSpecularSRV);
+	materials[4]->AddTextureSRV("NormalMap", this->asphaltNormalSRV);
 	materials[4]->AddSampler("BasicSampler", this->samplerState);
 
 	// Metal Texture
 	materials[5]->AddTextureSRV("SurfaceTexture", this->metalSRV);
 	materials[5]->AddTextureSRV("SpecularMap", this->metalSpecularSRV);
+	materials[5]->AddTextureSRV("NormalMap", this->metalNormalSRV);
 	materials[5]->AddSampler("BasicSampler", this->samplerState);
 
 	/*
@@ -450,29 +458,29 @@ void Game::CreateGeometry()
 	*/
 
 	meshes[0] = std::make_shared<Mesh>(FixPath(L"../../Assets/Models/quad.obj").c_str(), this->device);
-	meshes[1] = std::make_shared<Mesh>(FixPath(L"../../Assets/Models/cube.obj").c_str(), this->device);
+	meshes[1] = std::make_shared<Mesh>(FixPath(L"../../Assets/Models/torus.obj").c_str(), this->device);
 	meshes[2] = std::make_shared<Mesh>(FixPath(L"../../Assets/Models/helix.obj").c_str(), this->device);
 	meshes.push_back(std::make_shared<Mesh>(FixPath(L"../../Assets/Models/sphere.obj").c_str(), this->device));
 	meshes.push_back(std::make_shared<Mesh>(FixPath(L"../../Assets/Models/cylinder.obj").c_str(), this->device));
-	meshes.push_back(std::make_shared<Mesh>(FixPath(L"../../Assets/Models/torus.obj").c_str(), this->device));
+	meshes.push_back(std::make_shared<Mesh>(FixPath(L"../../Assets/Models/cube.obj").c_str(), this->device));
 	meshes.push_back(std::make_shared<Mesh>(FixPath(L"../../Assets/Models/quad_double_sided.obj").c_str(), this->device));
 
 
-	std::shared_ptr<GameEntity> entity1 = std::make_shared<GameEntity>(meshes[0], materials[4]);
-	std::shared_ptr<GameEntity> entity2 = std::make_shared<GameEntity>(meshes[1], materials[5]);
-	std::shared_ptr<GameEntity> entity3 = std::make_shared<GameEntity>(meshes[2], materials[5]);
-	std::shared_ptr<GameEntity> entity4 = std::make_shared<GameEntity>(meshes[3], materials[4]);
-	std::shared_ptr<GameEntity> entity5 = std::make_shared<GameEntity>(meshes[4], materials[5]);
+	std::shared_ptr<GameEntity> entity1 = std::make_shared<GameEntity>(meshes[0], materials[5]);
+	std::shared_ptr<GameEntity> entity2 = std::make_shared<GameEntity>(meshes[1], materials[4]);
+	std::shared_ptr<GameEntity> entity3 = std::make_shared<GameEntity>(meshes[2], materials[4]);
+	std::shared_ptr<GameEntity> entity4 = std::make_shared<GameEntity>(meshes[3], materials[5]);
+	std::shared_ptr<GameEntity> entity5 = std::make_shared<GameEntity>(meshes[4], materials[4]);
 	std::shared_ptr<GameEntity> entity6 = std::make_shared<GameEntity>(meshes[5], materials[5]);
 	std::shared_ptr<GameEntity> entity7 = std::make_shared<GameEntity>(meshes[6], materials[4]);
 
 	entity1->GetTransform()->MoveAbsolute(-12.0f, 0.0f, 0.0f);
 	entity2->GetTransform()->MoveAbsolute(-8.0f, 0.0f, 0.0f);
-	entity2->GetTransform()->Rotate(0.0f, 2.4f, 0.5f);
 	entity3->GetTransform()->MoveAbsolute(-4.0f, 0.0f, 0.0f);
 	entity4->GetTransform()->MoveAbsolute(0.0f, 0.0f, 0.0f);
 	entity5->GetTransform()->MoveAbsolute(4.0f, 0.0f, 0.0f);
 	entity6->GetTransform()->MoveAbsolute(8.0f, 0.0f, 0.0f);
+	entity6->GetTransform()->Rotate(0.0f, 2.4f, 0.5f);
 	entity7->GetTransform()->MoveAbsolute(12.0f, 0.0f, 0.0f);
 
 	entities.push_back(entity1);
@@ -483,6 +491,12 @@ void Game::CreateGeometry()
 	entities.push_back(entity6);
 	entities.push_back(entity7);
 
+	// Assignment 9
+	this->skyMesh = std::make_shared<Mesh>(FixPath(L"../../Assets/Models/quad.obj").c_str(), this->device);
+	this->sky = std::make_shared<Sky>(meshes[1], this->samplerState, this->device, this->context, this->skyPixelShader, this->skyVertexShader,
+		FixPath(L"../../Assets/Textures/Clouds Pink/right.png").c_str(), FixPath(L"../../Assets/Textures/Clouds Pink/left.png").c_str(), 
+		FixPath(L"../../Assets/Textures/Clouds Pink/up.png").c_str(), FixPath(L"../../Assets/Textures/Clouds Pink/down.png").c_str(),
+		FixPath(L"../../Assets/Textures/Clouds Pink/front.png").c_str(), FixPath(L"../../Assets/Textures/Clouds Pink/back.png").c_str());
 }
 
 
@@ -783,8 +797,11 @@ void Game::Update(float deltaTime, float totalTime)
 	std::shared_ptr<Transform> helixTransform = entities[2]->GetTransform();
 	helixTransform->Rotate(0.0f, -deltaTime * 0.5f, 0.0f);
 
-	std::shared_ptr<Transform> cubeTransform = entities[1]->GetTransform();
+	std::shared_ptr<Transform> cubeTransform = entities[5]->GetTransform();
 	cubeTransform->Rotate(0.0f, deltaTime * 0.75f, 0.0f);
+
+	std::shared_ptr<Transform> sphereTransform = entities[3]->GetTransform();
+	sphereTransform->Rotate(0.0f, deltaTime, 0.0f);
 
 	// Example input checking: Quit if the escape key is pressed
 	if (Input::GetInstance().KeyDown(VK_ESCAPE))
@@ -932,8 +949,8 @@ void Game::Draw(float deltaTime, float totalTime)
 			g->Draw(context, this->colorTint, this->cameras[activeCamera]);
 		}
 
-		
-
+		// Assignment 9
+		this->sky->Draw(this->cameras[activeCamera]);
 
 	}
 

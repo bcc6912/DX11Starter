@@ -12,6 +12,7 @@
 #include "Material.h"
 #include "Lights.h"
 #include "WICTextureLoader.h"
+#include "Sky.h"
 
 class Game
 	: public DXCore
@@ -69,7 +70,8 @@ private:
 
 	// Assignment 5
 	// std::shared_ptr<Camera> camera;
-	DirectX::XMFLOAT4 colorTint = DirectX::XMFLOAT4(1.0f, 0.5f, 0.5f, 1.0f);
+	// DirectX::XMFLOAT4 colorTint = DirectX::XMFLOAT4(1.0f, 0.5f, 0.5f, 1.0f);
+	DirectX::XMFLOAT4 colorTint = DirectX::XMFLOAT4(0.67f, 0.67f, 0.67f, 1.0f);
 	std::vector<std::shared_ptr<Camera>> cameras;
 	int activeCamera = 0;
 
@@ -83,7 +85,7 @@ private:
 
 	// Assignment 7
 	// Ambient (Task 4)
-	DirectX::XMFLOAT3 ambientColor = DirectX::XMFLOAT3(0.1f, 0.1f, 0.25f);
+	DirectX::XMFLOAT3 ambientColor = DirectX::XMFLOAT3(0.76f, 0.66f, 0.73f);
 	// Light (Task 6)
 	Light directionalLight1 = {};
 	// More Lights (Task 8)
@@ -99,8 +101,16 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> samplerState;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> metalSRV;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> metalSpecularSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> metalNormalSRV;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> asphaltSRV;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> asphaltSpecularSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> asphaltNormalSRV;
 	float roughness = 0.5f;
+
+	// Assignment 9
+	std::shared_ptr<Sky> sky;
+	std::shared_ptr<Mesh> skyMesh;
+	std::shared_ptr<SimpleVertexShader> skyVertexShader;
+	std::shared_ptr<SimplePixelShader> skyPixelShader;
 };
 
