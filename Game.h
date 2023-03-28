@@ -102,9 +102,11 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> metalSRV;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> metalSpecularSRV;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> metalNormalSRV;
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> asphaltSRV;
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> asphaltSpecularSRV;
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> asphaltNormalSRV;
+
+	// previously asphalt, now cobblestone for assignment 9
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> cobblestoneSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> cobblestoneSpecularSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> cobblestoneNormalSRV;
 	float roughness = 0.5f;
 
 	// Assignment 9

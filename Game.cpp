@@ -338,20 +338,20 @@ void Game::CreateGeometry()
 	*/
 
 	// Assignment 8
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> tileSRV;
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> tileSpecularSRV;
+	// Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> tileSRV;
+	// Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> tileSpecularSRV;
 	// Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> metalSRV;
 	// Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> metalSpecularSRV;
 	// Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> asphaltSRV;
 	// Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> asphaltSpecularSRV;
-	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/brokentiles.png").c_str(), 0, tileSRV.GetAddressOf());
-	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/brokentiles_specular.png").c_str(), 0, tileSpecularSRV.GetAddressOf());
+	// CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/brokentiles.png").c_str(), 0, tileSRV.GetAddressOf());
+	// CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/brokentiles_specular.png").c_str(), 0, tileSpecularSRV.GetAddressOf());
 	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/metalfloor.png").c_str(), 0, metalSRV.GetAddressOf());
 	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/metalfloor_specular.png").c_str(), 0, metalSpecularSRV.GetAddressOf());
 	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/metalfloor_normals.png").c_str(), 0, metalNormalSRV.GetAddressOf());
-	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/cobblestone.png").c_str(), 0, asphaltSRV.GetAddressOf());
-	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/cobblestone_specular.png").c_str(), 0, asphaltSpecularSRV.GetAddressOf());
-	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/cobblestone_normals.png").c_str(), 0, asphaltNormalSRV.GetAddressOf());
+	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/cobblestone.png").c_str(), 0, cobblestoneSRV.GetAddressOf());
+	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/cobblestone_specular.png").c_str(), 0, cobblestoneSpecularSRV.GetAddressOf());
+	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/cobblestone_normals.png").c_str(), 0, cobblestoneNormalSRV.GetAddressOf());
 
 	// AddressU, V, W should be something other than 0, but within 0 - 1 range
 
@@ -376,10 +376,10 @@ void Game::CreateGeometry()
 
 	// Assignment 8
 	// set SRVs and samplers with SimpleShader
-	// Asphalt Texture
-	materials[4]->AddTextureSRV("SurfaceTexture", this->asphaltSRV);
-	materials[4]->AddTextureSRV("SpecularMap", this->asphaltSpecularSRV);
-	materials[4]->AddTextureSRV("NormalMap", this->asphaltNormalSRV);
+	// Cobblestone Texture, previously Asphalt
+	materials[4]->AddTextureSRV("SurfaceTexture", this->cobblestoneSRV);
+	materials[4]->AddTextureSRV("SpecularMap", this->cobblestoneSpecularSRV);
+	materials[4]->AddTextureSRV("NormalMap", this->cobblestoneNormalSRV);
 	materials[4]->AddSampler("BasicSampler", this->samplerState);
 
 	// Metal Texture
@@ -696,10 +696,10 @@ void Game::Update(float deltaTime, float totalTime)
 
 	if (ImGui::CollapsingHeader("Textures"))
 	{
-		ImGui::Text("Texture 1: Asphalt");
+		ImGui::Text("Texture 1: Cobblestone");
 		ImGui::Spacing();
 
-		ImGui::Image(this->asphaltSRV.Get(), ImVec2(200.0f, 200.0f));
+		ImGui::Image(this->cobblestoneSRV.Get(), ImVec2(200.0f, 200.0f));
 
 		ImGui::Spacing();
 
