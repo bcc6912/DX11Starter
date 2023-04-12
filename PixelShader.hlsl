@@ -59,8 +59,8 @@ float4 main(VertexToPixel input) : SV_TARGET
 
 	// return colorTint;
 
-	// Assignment 8
-	float3 surfaceColor = SurfaceTexture.Sample(BasicSampler, input.uv).rgb * (float3)colorTint;
+	// Assignment 8 and 10
+	float3 surfaceColor = pow(SurfaceTexture.Sample(BasicSampler, input.uv).rgb, 2.2f) * (float3)colorTint;
 	
 	float specularScale = 1.0f;
 	if (usingSpecularMap)
@@ -133,5 +133,5 @@ float4 main(VertexToPixel input) : SV_TARGET
 	finalColor += PointLight(lights[3], input.normal, input.worldPosition, viewVector, roughness, surfaceColor, specularScale);
 	finalColor += PointLight(lights[4], input.normal, input.worldPosition, viewVector, roughness, surfaceColor, specularScale);
 
-	return colorTint * float4(finalColor, 1.0f);
+	return float4(pow(finalColor, (1.0f / 2.2f)), 1.0f);
 }

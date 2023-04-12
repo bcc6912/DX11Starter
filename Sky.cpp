@@ -14,17 +14,20 @@ Sky::Sky(std::shared_ptr<Mesh> mesh, Microsoft::WRL::ComPtr<ID3D11SamplerState> 
 	this->context = context;
 	this->skyPixelShader = pixelShader;
 	this->skyVertexShader = vertexShader;
-	this->cubeMapSRV = CreateCubemap(right, left, up, down, front, back);
 
 	D3D11_RASTERIZER_DESC rasterizerDesc = {};
 	rasterizerDesc.FillMode = D3D11_FILL_SOLID;
 	rasterizerDesc.CullMode = D3D11_CULL_FRONT;
+	rasterizerDesc.DepthClipEnable = true;
 	this->device->CreateRasterizerState(&rasterizerDesc, this->rasterizerOptions.GetAddressOf());
 
 	D3D11_DEPTH_STENCIL_DESC depthDesc = {};
 	depthDesc.DepthEnable = true;
 	depthDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+	depthDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
 	this->device->CreateDepthStencilState(&depthDesc, this->depthBufferComparisonType.GetAddressOf());
+
+	this->cubeMapSRV = CreateCubemap(right, left, up, down, front, back);
 }
 
 void Sky::Draw(std::shared_ptr<Camera> camera)

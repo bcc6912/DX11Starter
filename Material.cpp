@@ -96,6 +96,15 @@ void Material::AddTextureSRV(std::string shaderName, Microsoft::WRL::ComPtr<ID3D
 	{
 		this->pixelShader->SetInt("usingSpecularMap", 1);
 	}
+	else if (shaderName == "Albedo") // only albedo uses gamma correction so the gammaCorrection int can be determined here
+	{
+		this->pixelShader->SetInt("usingAlbedo", 1);
+		this->pixelShader->SetInt("gammaCorrection", 1);
+	}
+	else if (shaderName == "Metalness")
+	{
+		this->pixelShader->SetInt("usingMetal", 1);
+	}
 }
 
 void Material::AddSampler(std::string samplerName, Microsoft::WRL::ComPtr<ID3D11SamplerState> sampler)

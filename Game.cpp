@@ -240,6 +240,9 @@ void Game::LoadShaders()
 	// Assignment 9
 	this->skyVertexShader = std::make_shared<SimpleVertexShader>(this->device, this->context, FixPath(L"SkyVertexShader.cso").c_str());
 	this->skyPixelShader = std::make_shared<SimplePixelShader>(this->device, this->context, FixPath(L"SkyPixelShader.cso").c_str());
+
+	// Assignment 10
+	this->PBRPixelShader = std::make_shared<SimplePixelShader>(this->device, this->context, FixPath(L"PBRPixelShader.cso").c_str());
 }
 
 
@@ -346,12 +349,18 @@ void Game::CreateGeometry()
 	// Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> asphaltSpecularSRV;
 	// CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/brokentiles.png").c_str(), 0, tileSRV.GetAddressOf());
 	// CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/brokentiles_specular.png").c_str(), 0, tileSpecularSRV.GetAddressOf());
-	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/metalfloor.png").c_str(), 0, metalSRV.GetAddressOf());
+	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/metalfloor_albedo.png").c_str(), 0, metalSRV.GetAddressOf());
 	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/metalfloor_specular.png").c_str(), 0, metalSpecularSRV.GetAddressOf());
 	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/metalfloor_normals.png").c_str(), 0, metalNormalSRV.GetAddressOf());
-	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/cobblestone.png").c_str(), 0, cobblestoneSRV.GetAddressOf());
-	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/cobblestone_specular.png").c_str(), 0, cobblestoneSpecularSRV.GetAddressOf());
+	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/cobblestone_albedo.png").c_str(), 0, cobblestoneSRV.GetAddressOf());
+	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/cobblestone_roughness.png").c_str(), 0, cobblestoneSpecularSRV.GetAddressOf());
 	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/cobblestone_normals.png").c_str(), 0, cobblestoneNormalSRV.GetAddressOf());
+
+	// Assignment 10
+	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/metalfloor_albedo.png").c_str(), 0, metalAlbedoSRV.GetAddressOf());
+	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/metalfloor_roughness.png").c_str(), 0, metalRoughnessSRV.GetAddressOf());
+	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/metalfloor_metalness.png").c_str(), 0, metalMetalnessSRV.GetAddressOf());
+	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/cobblestone_metal.png").c_str(), 0, cobblestoneMetalnessSRV.GetAddressOf());
 
 	// AddressU, V, W should be something other than 0, but within 0 - 1 range
 
@@ -371,20 +380,32 @@ void Game::CreateGeometry()
 	materials.push_back(std::make_shared<Material>(XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f), this->vertexShader, this->pixelShader, 1.0f));
 	materials.push_back(std::make_shared<Material>(XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f), this->vertexShader, this->customPShader, 1.0f));
 
-	materials.push_back(std::make_shared<Material>(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), this->vertexShader, this->pixelShader, 0.5f));
-	materials.push_back(std::make_shared<Material>(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), this->vertexShader, this->pixelShader, 0.5f));
+	// materials.push_back(std::make_shared<Material>(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), this->vertexShader, this->pixelShader, 0.5f));
+	// materials.push_back(std::make_shared<Material>(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), this->vertexShader, this->pixelShader, 0.5f));
+
+	// Assignment 10
+	materials.push_back(std::make_shared<Material>(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), this->vertexShader, this->PBRPixelShader, 1.0f));
+	materials.push_back(std::make_shared<Material>(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), this->vertexShader, this->PBRPixelShader, 1.0f));
 
 	// Assignment 8
 	// set SRVs and samplers with SimpleShader
 	// Cobblestone Texture, previously Asphalt
-	materials[4]->AddTextureSRV("SurfaceTexture", this->cobblestoneSRV);
-	materials[4]->AddTextureSRV("SpecularMap", this->cobblestoneSpecularSRV);
+	materials[4]->AddTextureSRV("Albedo", this->cobblestoneSRV);
+	materials[4]->AddTextureSRV("RoughnessMap", this->cobblestoneSpecularSRV);
+	materials[5]->AddTextureSRV("MetalnessMap", this->cobblestoneMetalnessSRV);
 	materials[4]->AddTextureSRV("NormalMap", this->cobblestoneNormalSRV);
 	materials[4]->AddSampler("BasicSampler", this->samplerState);
 
 	// Metal Texture
-	materials[5]->AddTextureSRV("SurfaceTexture", this->metalSRV);
-	materials[5]->AddTextureSRV("SpecularMap", this->metalSpecularSRV);
+	// materials[5]->AddTextureSRV("SurfaceTexture", this->metalSRV);
+	// materials[5]->AddTextureSRV("SpecularMap", this->metalSpecularSRV);
+	// materials[4]->AddTextureSRV("NormalMap", this->metalNormalSRV);
+	// materials[4]->AddSampler("BasicSampler", this->samplerState);
+
+	// Assignment 10
+	materials[5]->AddTextureSRV("Albedo", this->metalAlbedoSRV);
+	materials[5]->AddTextureSRV("RoughnessMap", this->metalRoughnessSRV);
+	materials[5]->AddTextureSRV("MetalnessMap", this->metalMetalnessSRV);
 	materials[5]->AddTextureSRV("NormalMap", this->metalNormalSRV);
 	materials[5]->AddSampler("BasicSampler", this->samplerState);
 
@@ -466,11 +487,11 @@ void Game::CreateGeometry()
 	meshes.push_back(std::make_shared<Mesh>(FixPath(L"../../Assets/Models/quad_double_sided.obj").c_str(), this->device));
 
 
-	std::shared_ptr<GameEntity> entity1 = std::make_shared<GameEntity>(meshes[0], materials[5]);
+	std::shared_ptr<GameEntity> entity1 = std::make_shared<GameEntity>(meshes[0], materials[4]);
 	std::shared_ptr<GameEntity> entity2 = std::make_shared<GameEntity>(meshes[1], materials[4]);
-	std::shared_ptr<GameEntity> entity3 = std::make_shared<GameEntity>(meshes[2], materials[4]);
-	std::shared_ptr<GameEntity> entity4 = std::make_shared<GameEntity>(meshes[3], materials[5]);
-	std::shared_ptr<GameEntity> entity5 = std::make_shared<GameEntity>(meshes[4], materials[4]);
+	std::shared_ptr<GameEntity> entity3 = std::make_shared<GameEntity>(meshes[2], materials[5]);
+	std::shared_ptr<GameEntity> entity4 = std::make_shared<GameEntity>(meshes[3], materials[4]);
+	std::shared_ptr<GameEntity> entity5 = std::make_shared<GameEntity>(meshes[4], materials[5]);
 	std::shared_ptr<GameEntity> entity6 = std::make_shared<GameEntity>(meshes[5], materials[5]);
 	std::shared_ptr<GameEntity> entity7 = std::make_shared<GameEntity>(meshes[6], materials[4]);
 
@@ -631,6 +652,23 @@ void Game::Update(float deltaTime, float totalTime)
 
 		ImGui::Spacing();
 
+		if (ImGui::Button("All Lights White"))
+		{
+			for (int i = 0; i < lights.size(); i++)
+			{
+				lights[i].Color = XMFLOAT3(1.0f, 1.0f, 1.0f);
+			}
+		}
+
+		if (ImGui::Button("Reset Lights Color"))
+		{
+			lights[0].Color = XMFLOAT3(1.0f, 0.0f, 0.0f);
+			lights[1].Color = XMFLOAT3(0.0f, 1.0f, 0.0f);
+			lights[2].Color = XMFLOAT3(0.0f, 0.0f, 1.0f);
+			lights[3].Color = XMFLOAT3(1.0f, 0.5f, 1.0f);
+			lights[4].Color = XMFLOAT3(1.0f, 0.6f, 0.2f);
+		}
+
 		for (int i = 0; i < lights.size(); i++)
 		{
 			ImGui::PushID(i);
@@ -708,6 +746,7 @@ void Game::Update(float deltaTime, float totalTime)
 
 		ImGui::Image(this->metalSRV.Get(), ImVec2(200.0f, 200.0f));
 
+		/*
 		if (ImGui::DragFloat("Roughness", &this->roughness, 0.01f))
 		{
 			if (this->roughness < 0.00f)
@@ -721,6 +760,7 @@ void Game::Update(float deltaTime, float totalTime)
 			materials[4]->SetRoughness(this->roughness);
 			materials[5]->SetRoughness(this->roughness);
 		}
+		*/
 	}
 
 	if (ImGui::CollapsingHeader("Cameras"))
@@ -840,7 +880,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	// - At the beginning of Game::Draw() before drawing *anything*
 	{
 		// Clear the back buffer (erases what's on the screen)
-		const float bgColor[4] = { 0.4f, 0.6f, 0.75f, 1.0f }; // Cornflower Blue
+		const float bgColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f }; // Cornflower Blue
 		context->ClearRenderTargetView(backBufferRTV.Get(), bgColor);
 
 		// Clear the depth buffer (resets per-pixel occlusion information)
@@ -939,7 +979,7 @@ void Game::Draw(float deltaTime, float totalTime)
 		for (std::shared_ptr<GameEntity> g : entities)
 		{
 			// g->GetMaterial()->PrepareMaterial(g->GetMaterial()->GetRoughness(), this->cameras[activeCamera]->GetTransform().GetPosition());
-			g->GetMaterial()->GetPixelShader()->SetFloat3("ambient", this->ambientColor);
+			// g->GetMaterial()->GetPixelShader()->SetFloat3("ambient", this->ambientColor);
 			g->GetMaterial()->GetPixelShader()->SetData("lights", &lights[0], sizeof(Light) * (int)lights.size());
 		}
 

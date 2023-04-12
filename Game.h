@@ -85,7 +85,8 @@ private:
 
 	// Assignment 7
 	// Ambient (Task 4)
-	DirectX::XMFLOAT3 ambientColor = DirectX::XMFLOAT3(0.76f, 0.66f, 0.73f);
+	// DirectX::XMFLOAT3 ambientColor = DirectX::XMFLOAT3(0.76f, 0.66f, 0.73f);
+	DirectX::XMFLOAT3 ambientColor = DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f); // set to black for assignment 10
 	// Light (Task 6)
 	Light directionalLight1 = {};
 	// More Lights (Task 8)
@@ -114,5 +115,12 @@ private:
 	std::shared_ptr<Mesh> skyMesh;
 	std::shared_ptr<SimpleVertexShader> skyVertexShader;
 	std::shared_ptr<SimplePixelShader> skyPixelShader;
+
+	// Assignment 10
+	std::shared_ptr<SimplePixelShader> PBRPixelShader;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> metalAlbedoSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> metalRoughnessSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> metalMetalnessSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> cobblestoneMetalnessSRV;
 };
 
