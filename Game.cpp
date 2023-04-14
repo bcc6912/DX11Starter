@@ -513,8 +513,8 @@ void Game::CreateGeometry()
 	entities.push_back(entity7);
 
 	// Assignment 9
-	this->skyMesh = std::make_shared<Mesh>(FixPath(L"../../Assets/Models/quad.obj").c_str(), this->device);
-	this->sky = std::make_shared<Sky>(meshes[1], this->samplerState, this->device, this->context, this->skyPixelShader, this->skyVertexShader,
+	this->skyMesh = std::make_shared<Mesh>(FixPath(L"../../Assets/Models/cube.obj").c_str(), this->device);
+	this->sky = std::make_shared<Sky>(skyMesh, this->samplerState, this->device, this->context, this->skyPixelShader, this->skyVertexShader,
 		FixPath(L"../../Assets/Textures/Clouds Pink/right.png").c_str(), FixPath(L"../../Assets/Textures/Clouds Pink/left.png").c_str(), 
 		FixPath(L"../../Assets/Textures/Clouds Pink/up.png").c_str(), FixPath(L"../../Assets/Textures/Clouds Pink/down.png").c_str(),
 		FixPath(L"../../Assets/Textures/Clouds Pink/front.png").c_str(), FixPath(L"../../Assets/Textures/Clouds Pink/back.png").c_str());
@@ -648,7 +648,7 @@ void Game::Update(float deltaTime, float totalTime)
 		}
 		*/
 
-		ImGui::ColorEdit3("Ambient", &ambientColor.x);
+		// ImGui::ColorEdit3("Ambient", &ambientColor.x);
 
 		ImGui::Spacing();
 
