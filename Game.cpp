@@ -362,6 +362,10 @@ void Game::CreateGeometry()
 	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/metalfloor_metalness.png").c_str(), 0, metalMetalnessSRV.GetAddressOf());
 	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/cobblestone_metal.png").c_str(), 0, cobblestoneMetalnessSRV.GetAddressOf());
 
+	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/woodfloor_albedo.png").c_str(), 0, woodAlbedoSRV.GetAddressOf());
+	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/woodfloor_roughness.png").c_str(), 0, woodRoughnessSRV.GetAddressOf());
+	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/woodfloor_normals.png").c_str(), 0, woodNormalSRV.GetAddressOf());
+
 	// AddressU, V, W should be something other than 0, but within 0 - 1 range
 
 	D3D11_SAMPLER_DESC samplerDesc = {};
@@ -387,6 +391,9 @@ void Game::CreateGeometry()
 	materials.push_back(std::make_shared<Material>(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), this->vertexShader, this->PBRPixelShader, 1.0f));
 	materials.push_back(std::make_shared<Material>(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), this->vertexShader, this->PBRPixelShader, 1.0f));
 
+	// Assignment 11
+	materials.push_back(std::make_shared<Material>(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), this->vertexShader, this->PBRPixelShader, 1.0f));
+
 	// Assignment 8
 	// set SRVs and samplers with SimpleShader
 	// Cobblestone Texture, previously Asphalt
@@ -408,6 +415,12 @@ void Game::CreateGeometry()
 	materials[5]->AddTextureSRV("MetalnessMap", this->metalMetalnessSRV);
 	materials[5]->AddTextureSRV("NormalMap", this->metalNormalSRV);
 	materials[5]->AddSampler("BasicSampler", this->samplerState);
+
+	// Assignment 11
+	materials[6]->AddTextureSRV("Albedo", this->woodAlbedoSRV);
+	materials[6]->AddTextureSRV("RoughnessMap", this->woodRoughnessSRV);
+	materials[6]->AddTextureSRV("NormalMap", this->woodNormalSRV);
+	materials[6]->AddSampler("BasicSampler", this->samplerState);
 
 	/*
 	// colors for meshes
@@ -478,7 +491,7 @@ void Game::CreateGeometry()
 	entities.push_back(entity5);
 	*/
 
-	meshes[0] = std::make_shared<Mesh>(FixPath(L"../../Assets/Models/quad.obj").c_str(), this->device);
+	meshes[0] = std::make_shared<Mesh>(FixPath(L"../../Assets/Models/dagger.obj").c_str(), this->device);
 	meshes[1] = std::make_shared<Mesh>(FixPath(L"../../Assets/Models/torus.obj").c_str(), this->device);
 	meshes[2] = std::make_shared<Mesh>(FixPath(L"../../Assets/Models/helix.obj").c_str(), this->device);
 	meshes.push_back(std::make_shared<Mesh>(FixPath(L"../../Assets/Models/sphere.obj").c_str(), this->device));
@@ -494,6 +507,7 @@ void Game::CreateGeometry()
 	std::shared_ptr<GameEntity> entity5 = std::make_shared<GameEntity>(meshes[4], materials[5]);
 	std::shared_ptr<GameEntity> entity6 = std::make_shared<GameEntity>(meshes[5], materials[5]);
 	std::shared_ptr<GameEntity> entity7 = std::make_shared<GameEntity>(meshes[6], materials[4]);
+	std::shared_ptr<GameEntity> floor = std::make_shared<GameEntity>(meshes[5], materials[6]);
 
 	entity1->GetTransform()->MoveAbsolute(-12.0f, 0.0f, 0.0f);
 	entity2->GetTransform()->MoveAbsolute(-8.0f, 0.0f, 0.0f);
@@ -503,6 +517,8 @@ void Game::CreateGeometry()
 	entity6->GetTransform()->MoveAbsolute(8.0f, 0.0f, 0.0f);
 	entity6->GetTransform()->Rotate(0.0f, 2.4f, 0.5f);
 	entity7->GetTransform()->MoveAbsolute(12.0f, 0.0f, 0.0f);
+	floor->GetTransform()->MoveAbsolute(0.0f, -3.0f, 0.0f);
+	floor->GetTransform()->Scale(15.0f, 0.5f, 15.0f);
 
 	entities.push_back(entity1);
 	entities.push_back(entity2);
@@ -511,6 +527,7 @@ void Game::CreateGeometry()
 	entities.push_back(entity5);
 	entities.push_back(entity6);
 	entities.push_back(entity7);
+	entities.push_back(floor);
 
 	// Assignment 9
 	this->skyMesh = std::make_shared<Mesh>(FixPath(L"../../Assets/Models/cube.obj").c_str(), this->device);
@@ -836,12 +853,46 @@ void Game::Update(float deltaTime, float totalTime)
 	}
 	std::shared_ptr<Transform> helixTransform = entities[2]->GetTransform();
 	helixTransform->Rotate(0.0f, -deltaTime * 0.5f, 0.0f);
+	if (this->helixForward)
+	{
+		helixTransform->MoveAbsolute(0.0f, 0.0f, deltaTime * 1.5f);
+		if (helixTransform->GetPosition().z >= 3.0f)
+		{
+			this->helixForward = false;
+		}
+	}
+	else
+	{
+		helixTransform->MoveAbsolute(0.0f, 0.0f, -deltaTime * 1.5f);
+		if (helixTransform->GetPosition().z <= -3.0f)
+		{
+			this->helixForward = true;
+		}
+	}
 
 	std::shared_ptr<Transform> cubeTransform = entities[5]->GetTransform();
 	cubeTransform->Rotate(0.0f, deltaTime * 0.75f, 0.0f);
 
 	std::shared_ptr<Transform> sphereTransform = entities[3]->GetTransform();
 	sphereTransform->Rotate(0.0f, deltaTime, 0.0f);
+
+	std::shared_ptr<Transform> cylinderTransform = entities[4]->GetTransform();
+	if (this->cylinderUp)
+	{
+		cylinderTransform->MoveAbsolute(0.0f, deltaTime, 0.0f);
+		if (cylinderTransform->GetPosition().y >= 2.5f)
+		{
+			this->cylinderUp = false;
+		}
+	}
+	else
+	{
+		cylinderTransform->MoveAbsolute(0.0f, -deltaTime, 0.0f);
+		if (cylinderTransform->GetPosition().y <= -2.5f)
+		{
+			this->cylinderUp = true;
+		}
+	}
 
 	// Example input checking: Quit if the escape key is pressed
 	if (Input::GetInstance().KeyDown(VK_ESCAPE))

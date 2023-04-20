@@ -122,5 +122,12 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> metalRoughnessSRV;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> metalMetalnessSRV;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> cobblestoneMetalnessSRV;
+
+	// Assignment 11
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> woodAlbedoSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> woodRoughnessSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> woodNormalSRV;
+	bool helixForward = true;
+	bool cylinderUp = true;
 };
 
