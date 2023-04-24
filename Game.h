@@ -127,7 +127,22 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> woodAlbedoSRV;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> woodRoughnessSRV;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> woodNormalSRV;
+
+	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> shadowDSV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> shadowSRV;
+	Microsoft::WRL::ComPtr<ID3D11RasterizerState> shadowRasterizer;
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> shadowSampler;
+	DirectX::XMFLOAT4X4 shadowViewMatrix;
+	DirectX::XMFLOAT4X4 shadowProjectionMatrix;
+
+	std::shared_ptr<SimpleVertexShader> shadowVertexShader;
+
 	bool helixForward = true;
 	bool cylinderUp = true;
+
+	void CreateShadowResources();
+	int shadowMapResolution = 1024;
+
+	void RenderShadowMap();
 };
 

@@ -7,6 +7,8 @@ cbuffer ExternalData : register(b0)
 	matrix view;
 	matrix projection;
 	matrix worldInverseTranspose;
+	matrix lightView;
+	matrix lightProjection;
 }
 
 /*
@@ -89,6 +91,9 @@ VertexToPixel main( VertexShaderInput input )
 	// Assignment 8
 	output.tangent = normalize(mul((float3x3)worldInverseTranspose, input.tangent));
 
+	// Assignment 11
+	matrix shadowWVP = mul(lightProjection, mul(lightView, world));
+	output.shadowMapPos = mul(shadowWVP, float4(input.localPosition, 1.0f));
 
 	// Whatever we return will make its way through the pipeline to the
 	// next programmable stage we're using (the pixel shader for now)
