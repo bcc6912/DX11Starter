@@ -248,6 +248,9 @@ void Game::LoadShaders()
 
 	// Assignment 11
 	this->shadowVertexShader = std::make_shared<SimpleVertexShader>(this->device, this->context, FixPath(L"ShadowVertexShader.cso").c_str());
+
+	// Assignment 12
+	this->celShadedPixelShader = std::make_shared<SimplePixelShader>(this->device, this->context, FixPath(L"CelShadingPixelShader.cso").c_str());
 }
 
 
@@ -371,6 +374,17 @@ void Game::CreateGeometry()
 	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/woodfloor_roughness.png").c_str(), 0, woodRoughnessSRV.GetAddressOf());
 	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/woodfloor_normals.png").c_str(), 0, woodNormalSRV.GetAddressOf());
 
+	// Assignment 12
+	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/white.png").c_str(), 0, whiteSRV.GetAddressOf());
+	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/gray.png").c_str(), 0, graySRV.GetAddressOf());
+	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/black.png").c_str(), 0, blackSRV.GetAddressOf());
+	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/flat_normals.png").c_str(), 0, flatNormalsSRV.GetAddressOf());
+
+	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/toonRamp1.png").c_str(), 0, celRamp1SRV.GetAddressOf());
+	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/toonRamp2.png").c_str(), 0, celRamp2SRV.GetAddressOf());
+	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/toonRamp3.png").c_str(), 0, celRamp3SRV.GetAddressOf());
+	CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(L"../../Assets/Textures/toonRampSpecular.png").c_str(), 0, celRampSpecularSRV.GetAddressOf());
+
 	// AddressU, V, W should be something other than 0, but within 0 - 1 range
 
 	D3D11_SAMPLER_DESC samplerDesc = {};
@@ -383,6 +397,11 @@ void Game::CreateGeometry()
 
 	HRESULT samplerTest = this->device->CreateSamplerState(&samplerDesc, this->samplerState.GetAddressOf());
 
+	// Assignment 12 - Cel-Shading
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+	device->CreateSamplerState(&samplerDesc, clampSampler.GetAddressOf());
 
 	materials.push_back(std::make_shared<Material>(XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), this->vertexShader, this->pixelShader, 1.0f));
 	materials.push_back(std::make_shared<Material>(XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f), this->vertexShader, this->pixelShader, 1.0f));
@@ -426,6 +445,14 @@ void Game::CreateGeometry()
 	materials[6]->AddTextureSRV("RoughnessMap", this->woodRoughnessSRV);
 	materials[6]->AddTextureSRV("NormalMap", this->woodNormalSRV);
 	materials[6]->AddSampler("BasicSampler", this->samplerState);
+
+	// Assignment 12
+	materials.push_back(std::make_shared<Material>(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), this->vertexShader, this->celShadedPixelShader, 1.0f));
+	materials[7]->AddSampler("BasicSampler", this->samplerState);
+	materials[7]->AddSampler("ClampSampler", this->clampSampler);
+	materials[7]->AddTextureSRV("Albedo", this->whiteSRV);
+	materials[7]->AddTextureSRV("NormalMap", this->flatNormalsSRV);
+	materials[7]->AddTextureSRV("RoughnessMap", this->blackSRV);
 
 	/*
 	// colors for meshes
@@ -496,7 +523,7 @@ void Game::CreateGeometry()
 	entities.push_back(entity5);
 	*/
 
-	meshes[0] = std::make_shared<Mesh>(FixPath(L"../../Assets/Models/quad.obj").c_str(), this->device);
+	meshes[0] = std::make_shared<Mesh>(FixPath(L"../../Assets/Models/crewmate.obj").c_str(), this->device);
 	meshes[1] = std::make_shared<Mesh>(FixPath(L"../../Assets/Models/torus.obj").c_str(), this->device);
 	meshes[2] = std::make_shared<Mesh>(FixPath(L"../../Assets/Models/helix.obj").c_str(), this->device);
 	meshes.push_back(std::make_shared<Mesh>(FixPath(L"../../Assets/Models/sphere.obj").c_str(), this->device));
@@ -507,10 +534,10 @@ void Game::CreateGeometry()
 
 	std::shared_ptr<GameEntity> entity1 = std::make_shared<GameEntity>(meshes[0], materials[4]);
 	std::shared_ptr<GameEntity> entity2 = std::make_shared<GameEntity>(meshes[1], materials[4]);
-	std::shared_ptr<GameEntity> entity3 = std::make_shared<GameEntity>(meshes[2], materials[5]);
+	std::shared_ptr<GameEntity> entity3 = std::make_shared<GameEntity>(meshes[2], materials[7]);
 	std::shared_ptr<GameEntity> entity4 = std::make_shared<GameEntity>(meshes[3], materials[4]);
-	std::shared_ptr<GameEntity> entity5 = std::make_shared<GameEntity>(meshes[4], materials[5]);
-	std::shared_ptr<GameEntity> entity6 = std::make_shared<GameEntity>(meshes[5], materials[5]);
+	std::shared_ptr<GameEntity> entity5 = std::make_shared<GameEntity>(meshes[4], materials[7]);
+	std::shared_ptr<GameEntity> entity6 = std::make_shared<GameEntity>(meshes[5], materials[7]);
 	std::shared_ptr<GameEntity> entity7 = std::make_shared<GameEntity>(meshes[6], materials[4]);
 	std::shared_ptr<GameEntity> floor = std::make_shared<GameEntity>(meshes[5], materials[6]);
 
@@ -1148,6 +1175,8 @@ void Game::Draw(float deltaTime, float totalTime)
 			// g->GetMaterial()->PrepareMaterial(g->GetMaterial()->GetRoughness(), this->cameras[activeCamera]->GetTransform().GetPosition());
 			// g->GetMaterial()->GetPixelShader()->SetFloat3("ambient", this->ambientColor);
 			g->GetMaterial()->GetPixelShader()->SetData("lights", &lights[0], sizeof(Light) * (int)lights.size());
+
+			g->GetMaterial()->GetPixelShader()->SetShaderResourceView("ToonRamp", this->celRamp1SRV);
 
 			g->GetMaterial()->AddTextureSRV("ShadowMap", this->shadowSRV);
 			g->GetMaterial()->AddSampler("ShadowSampler", this->shadowSampler);

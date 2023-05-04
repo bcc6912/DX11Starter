@@ -144,5 +144,20 @@ private:
 	int shadowMapResolution = 1024;
 
 	void RenderShadowMap();
+
+	// Assignment 12 - Cel-Shading
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> clampSampler;
+
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> whiteSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> graySRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> blackSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> flatNormalsSRV;
+
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> celRamp1SRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> celRamp2SRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> celRamp3SRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> celRampSpecularSRV;
+
+	std::shared_ptr<SimplePixelShader> celShadedPixelShader;
 };
 

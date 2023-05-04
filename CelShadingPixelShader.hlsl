@@ -3,10 +3,12 @@
 Texture2D Albedo			: register(t0);
 Texture2D NormalMap			: register(t1);
 Texture2D RoughnessMap		: register(t2);
-Texture2D MetalnessMap		: register(t3);
-Texture2D ShadowMap			: register(t4);
+Texture2D ShadowMap			: register(t3);
+Texture2D CelShadeRamp		: register(t4);
+Texture2D CelShadeSpecular	: register(t5);
 SamplerState BasicSampler	: register(s0);
-SamplerComparisonState ShadowSampler : register(s1);
+SamplerState ClampSampler	: register(s1);
+SamplerComparisonState ShadowSampler : register(s2);
 
 cbuffer ExternalData : register(b0)
 {
@@ -15,28 +17,18 @@ cbuffer ExternalData : register(b0)
 	float3 cameraPosition;
 	int gammaCorrection;
 	int usingAlbedo;
-	int usingMetal;
 
 	Light lights[5]; // 3 directional, 2 point IN THAT ORDER; MUST BE EXACT
 }
 
 float4 main(VertexToPixel input) : SV_TARGET
 {
-	// Assignment 11
 	input.shadowMapPos /= input.shadowMapPos.w;
-	
+
 	float2 shadowUV = input.shadowMapPos.xy * 0.5f + 0.5f;
 	shadowUV.y = 1 - shadowUV.y;
 
 	float distToLight = input.shadowMapPos.z;
-	/*
-	float distShadowMap = ShadowMap.Sample(BasicSampler, shadowUV).r;
-		
-	if (distShadowMap < distToLight)
-	{
-		return float4(0, 0, 0, 1);
-	}
-	*/
 
 	float shadowAmount = ShadowMap.SampleCmpLevelZero(ShadowSampler, shadowUV, distToLight).r;
 
@@ -52,10 +44,12 @@ float4 main(VertexToPixel input) : SV_TARGET
 	float roughness = RoughnessMap.Sample(BasicSampler, input.uv).r;
 
 	float metalness = 0.0f;
+	/*
 	if (usingMetal == 1)
 	{
 		metalness = MetalnessMap.Sample(BasicSampler, input.uv).r;
 	}
+	*/
 
 	float4 surfaceColor = Albedo.Sample(BasicSampler, input.uv);
 	// surfaceColor.rgb = gammaCorrection 
@@ -63,7 +57,7 @@ float4 main(VertexToPixel input) : SV_TARGET
 	{
 		surfaceColor.rgb = pow(surfaceColor.rgb, 2.2f);
 	}
-	else 
+	else
 	{
 		surfaceColor.rgb = surfaceColor.rgb;
 	}
@@ -78,15 +72,15 @@ float4 main(VertexToPixel input) : SV_TARGET
 	// float3 finalColor = surfaceColor.rgb;
 	float3 finalColor = float3(0.0f, 0.0f, 0.0f);
 
-	float3 lightResult = DirectionalLightPBR(lights[0], input.normal, viewVector, roughness, metalness, surfaceColor.rgb, specularColor);
+	float3 lightResult = DirectionalLightPBRCelShading(lights[0], input.normal, viewVector, roughness, metalness, surfaceColor.rgb, specularColor, CelShadeRamp, CelShadeSpecular, ClampSampler);
 	lightResult *= shadowAmount;
 
 	finalColor += lightResult;
 	// finalColor += DirectionalLightPBR(lights[0], input.normal, viewVector, roughness, metalness, surfaceColor.rgb, specularColor);
-	finalColor += DirectionalLightPBR(lights[1], input.normal, viewVector, roughness, metalness, surfaceColor.rgb, specularColor);
-	finalColor += DirectionalLightPBR(lights[2], input.normal, viewVector, roughness, metalness, surfaceColor.rgb, specularColor);
-	finalColor += PointLightPBR(lights[3], input.normal, input.worldPosition, viewVector, roughness, metalness, surfaceColor.rgb, specularColor);
-	finalColor += PointLightPBR(lights[4], input.normal, input.worldPosition, viewVector, roughness, metalness, surfaceColor.rgb, specularColor);
+	finalColor += DirectionalLightPBRCelShading(lights[1], input.normal, viewVector, roughness, metalness, surfaceColor.rgb, specularColor, CelShadeRamp, CelShadeSpecular, ClampSampler);
+	finalColor += DirectionalLightPBRCelShading(lights[2], input.normal, viewVector, roughness, metalness, surfaceColor.rgb, specularColor, CelShadeRamp, CelShadeSpecular, ClampSampler);
+	finalColor += PointLightPBRCelShading(lights[3], input.normal, input.worldPosition, viewVector, roughness, metalness, surfaceColor.rgb, specularColor, CelShadeRamp, CelShadeSpecular, ClampSampler);
+	finalColor += PointLightPBRCelShading(lights[4], input.normal, input.worldPosition, viewVector, roughness, metalness, surfaceColor.rgb, specularColor, CelShadeRamp, CelShadeSpecular, ClampSampler);
 
 	if (gammaCorrection)
 	{
@@ -96,5 +90,5 @@ float4 main(VertexToPixel input) : SV_TARGET
 	{
 		return float4(finalColor, 1.0f);
 	}
-	
+
 }

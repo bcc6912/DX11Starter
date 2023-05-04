@@ -306,4 +306,44 @@ float3 PointLightPBR(Light light, float3 normal, float3 worldPosition, float3 vi
 	return ((surfaceColor * balancedDiffuse) + specular) * light.Intensity * light.Color * attenuation;
 }
 
+// Assignment 12 - Cel-Shading
+
+// calculate viewVector using : normalize(cameraPosition - input.worldPosition) in pixel shader
+float3 DirectionalLightPBRCelShading(Light light, float3 normal, float3 viewVector, float roughness, float metalness, float3 surfaceColor, float3 specularColor, Texture2D rampTexture, Texture2D rampSpecular, SamplerState clampSampler)
+{
+	float3 direction = normalize(light.Direction * -1.0f);
+
+	float3 diffuse = DiffusePBR(normal, direction);
+	diffuse = rampTexture.Sample(clampSampler, float2(diffuse, 0)).r;
+
+	float3 F;
+
+	float3 specular = MicrofacetBRDF(normal, direction, viewVector, roughness, specularColor, F);
+	specular = rampSpecular.Sample(clampSampler, float2(specular, 0)).r;
+
+	float3 balancedDiffuse = DiffuseEnergyConserve(diffuse, specular, metalness);
+
+	return ((surfaceColor * balancedDiffuse) + specular) * light.Intensity * light.Color;
+}
+
+// calculate viewVector using : normalize(cameraPosition - input.worldPosition) in pixel shader
+float3 PointLightPBRCelShading(Light light, float3 normal, float3 worldPosition, float3 viewVector, float roughness, float metalness, float3 surfaceColor, float3 specularColor, Texture2D rampTexture, Texture2D rampSpecular, SamplerState clampSampler)
+{
+	float3 pointDirection = normalize(light.Position - worldPosition);
+
+	float3 diffuse = DiffusePBR(normal, pointDirection);
+	diffuse = rampTexture.Sample(clampSampler, float2(diffuse, 0)).r;
+
+	float3 F;
+
+	float3 specular = MicrofacetBRDF(normal, pointDirection, viewVector, roughness, specularColor, F);
+	specular = rampSpecular.Sample(clampSampler, float2(specular, 0)).r;
+
+	float attenuation = Attenuate(light, worldPosition);
+
+	float3 balancedDiffuse = DiffuseEnergyConserve(diffuse, specular, metalness);
+
+	return ((surfaceColor * balancedDiffuse) + specular) * light.Intensity * light.Color * attenuation;
+}
+
 #endif
