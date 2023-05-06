@@ -92,7 +92,7 @@ void Material::PrepareMaterial(std::shared_ptr<Transform> transform, std::shared
 void Material::AddTextureSRV(std::string shaderName, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
 {
 	this->textureSRVs.insert({ shaderName, srv });
-	if (shaderName == "SpecularMap")
+	if (shaderName == "SpecularMap" || shaderName == "CelShadeSpecular")
 	{
 		this->pixelShader->SetInt("usingSpecularMap", 1);
 	}

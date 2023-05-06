@@ -17,6 +17,8 @@ cbuffer ExternalData : register(b0)
 	float3 cameraPosition;
 	int gammaCorrection;
 	int usingAlbedo;
+	int usingSpecularMap;
+	float3 ambient;
 
 	Light lights[5]; // 3 directional, 2 point IN THAT ORDER; MUST BE EXACT
 }
@@ -43,13 +45,11 @@ float4 main(VertexToPixel input) : SV_TARGET
 
 	float roughness = RoughnessMap.Sample(BasicSampler, input.uv).r;
 
-	float metalness = 0.0f;
-	/*
-	if (usingMetal == 1)
+	float specularScale = 1.0f;
+	if (usingSpecularMap)
 	{
-		metalness = MetalnessMap.Sample(BasicSampler, input.uv).r;
+		specularScale = CelShadeSpecular.Sample(BasicSampler, input.uv).r;
 	}
-	*/
 
 	float4 surfaceColor = Albedo.Sample(BasicSampler, input.uv);
 	// surfaceColor.rgb = gammaCorrection 
@@ -67,20 +67,18 @@ float4 main(VertexToPixel input) : SV_TARGET
 		surfaceColor.rgb = colorTint.rgb;
 	}
 
-	float3 specularColor = lerp(F0_NON_METAL, surfaceColor.rgb, metalness);
-
-	// float3 finalColor = surfaceColor.rgb;
+	// float3 finalColor = surfaceColor.rgb * ambient;
 	float3 finalColor = float3(0.0f, 0.0f, 0.0f);
 
-	float3 lightResult = DirectionalLightPBRCelShading(lights[0], input.normal, viewVector, roughness, metalness, surfaceColor.rgb, specularColor, CelShadeRamp, CelShadeSpecular, ClampSampler);
+	float3 lightResult = DirectionalLightCelShading(lights[0], input.normal, viewVector, roughness, surfaceColor, specularScale, CelShadeRamp, CelShadeSpecular, ClampSampler);
 	lightResult *= shadowAmount;
 
 	finalColor += lightResult;
 	// finalColor += DirectionalLightPBR(lights[0], input.normal, viewVector, roughness, metalness, surfaceColor.rgb, specularColor);
-	finalColor += DirectionalLightPBRCelShading(lights[1], input.normal, viewVector, roughness, metalness, surfaceColor.rgb, specularColor, CelShadeRamp, CelShadeSpecular, ClampSampler);
-	finalColor += DirectionalLightPBRCelShading(lights[2], input.normal, viewVector, roughness, metalness, surfaceColor.rgb, specularColor, CelShadeRamp, CelShadeSpecular, ClampSampler);
-	finalColor += PointLightPBRCelShading(lights[3], input.normal, input.worldPosition, viewVector, roughness, metalness, surfaceColor.rgb, specularColor, CelShadeRamp, CelShadeSpecular, ClampSampler);
-	finalColor += PointLightPBRCelShading(lights[4], input.normal, input.worldPosition, viewVector, roughness, metalness, surfaceColor.rgb, specularColor, CelShadeRamp, CelShadeSpecular, ClampSampler);
+	finalColor += DirectionalLightCelShading(lights[1], input.normal, viewVector, roughness, surfaceColor, specularScale, CelShadeRamp, CelShadeSpecular, ClampSampler);
+	finalColor += DirectionalLightCelShading(lights[2], input.normal, viewVector, roughness, surfaceColor, specularScale, CelShadeRamp, CelShadeSpecular, ClampSampler);
+	finalColor += PointLightCelShading(lights[3], input.normal, input.worldPosition, viewVector, roughness, surfaceColor, specularScale, CelShadeRamp, CelShadeSpecular, ClampSampler);
+	finalColor += PointLightCelShading(lights[4], input.normal, input.worldPosition, viewVector, roughness, surfaceColor, specularScale, CelShadeRamp, CelShadeSpecular, ClampSampler);
 
 	if (gammaCorrection)
 	{

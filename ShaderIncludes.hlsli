@@ -81,7 +81,7 @@ float SpecularBRDF(float roughness, float3 normal, float3 dirFromLight, float3 v
 	float specExponent = (1.0f - roughness) * MAX_SPECULAR_EXPONENT;
 	// viewVector = V
 	float3 reflection = reflect(dirFromLight * -1.0f, normal); // R
-	float specular = pow(saturate(dot(reflection, viewVector)), specExponent);
+	float specular = pow(max(dot(reflection, viewVector), 0), specExponent);
 	return specular;
 }
 
@@ -309,41 +309,37 @@ float3 PointLightPBR(Light light, float3 normal, float3 worldPosition, float3 vi
 // Assignment 12 - Cel-Shading
 
 // calculate viewVector using : normalize(cameraPosition - input.worldPosition) in pixel shader
-float3 DirectionalLightPBRCelShading(Light light, float3 normal, float3 viewVector, float roughness, float metalness, float3 surfaceColor, float3 specularColor, Texture2D rampTexture, Texture2D rampSpecular, SamplerState clampSampler)
+float3 DirectionalLightCelShading(Light light, float3 normal, float3 viewVector, float roughness, float3 surfaceColor, float specularScale, Texture2D rampTexture, Texture2D rampSpecular, SamplerState clampSampler)
 {
 	float3 direction = normalize(light.Direction * -1.0f);
 
-	float3 diffuse = DiffusePBR(normal, direction);
+	float diffuse = dot(normal, direction);
 	diffuse = rampTexture.Sample(clampSampler, float2(diffuse, 0)).r;
 
-	float3 F;
-
-	float3 specular = MicrofacetBRDF(normal, direction, viewVector, roughness, specularColor, F);
+	float specular = SpecularBRDF(roughness, normal, normalize(direction), viewVector) * specularScale;
 	specular = rampSpecular.Sample(clampSampler, float2(specular, 0)).r;
 
-	float3 balancedDiffuse = DiffuseEnergyConserve(diffuse, specular, metalness);
+	specular *= any(diffuse);
 
-	return ((surfaceColor * balancedDiffuse) + specular) * light.Intensity * light.Color;
+	return ((surfaceColor * diffuse) + specular) * light.Intensity * light.Color;
 }
 
 // calculate viewVector using : normalize(cameraPosition - input.worldPosition) in pixel shader
-float3 PointLightPBRCelShading(Light light, float3 normal, float3 worldPosition, float3 viewVector, float roughness, float metalness, float3 surfaceColor, float3 specularColor, Texture2D rampTexture, Texture2D rampSpecular, SamplerState clampSampler)
+float3 PointLightCelShading(Light light, float3 normal, float3 worldPosition, float3 viewVector, float roughness, float3 surfaceColor, float specularScale, Texture2D rampTexture, Texture2D rampSpecular, SamplerState clampSampler)
 {
 	float3 pointDirection = normalize(light.Position - worldPosition);
 
-	float3 diffuse = DiffusePBR(normal, pointDirection);
+	float diffuse = dot(normal, pointDirection);
 	diffuse = rampTexture.Sample(clampSampler, float2(diffuse, 0)).r;
 
-	float3 F;
-
-	float3 specular = MicrofacetBRDF(normal, pointDirection, viewVector, roughness, specularColor, F);
+	float specular = SpecularBRDF(roughness, normal, normalize(pointDirection), viewVector) * specularScale;
 	specular = rampSpecular.Sample(clampSampler, float2(specular, 0)).r;
+
+	specular *= any(diffuse);
 
 	float attenuation = Attenuate(light, worldPosition);
 
-	float3 balancedDiffuse = DiffuseEnergyConserve(diffuse, specular, metalness);
-
-	return ((surfaceColor * balancedDiffuse) + specular) * light.Intensity * light.Color * attenuation;
+	return ((surfaceColor * diffuse) + specular) * light.Intensity * light.Color * attenuation;
 }
 
 #endif

@@ -1,1 +1,1 @@
-My extra texture-related feature is applying a specular map to my shaders.
+My graphical effect for Assignment 12 is Cel-Shading

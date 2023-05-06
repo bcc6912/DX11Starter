@@ -86,7 +86,7 @@ private:
 	// Assignment 7
 	// Ambient (Task 4)
 	// DirectX::XMFLOAT3 ambientColor = DirectX::XMFLOAT3(0.76f, 0.66f, 0.73f);
-	DirectX::XMFLOAT3 ambientColor = DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f); // set to black for assignment 10
+	// DirectX::XMFLOAT3 ambientColor = DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f); // set to black for assignment 10
 	// Light (Task 6)
 	Light directionalLight1 = {};
 	// More Lights (Task 8)
@@ -148,16 +148,14 @@ private:
 	// Assignment 12 - Cel-Shading
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> clampSampler;
 
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> whiteSRV;
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> graySRV;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> blackSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> redSRV;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> flatNormalsSRV;
 
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> celRamp1SRV;
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> celRamp2SRV;
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> celRamp3SRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> celRampSRV;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> celRampSpecularSRV;
 
 	std::shared_ptr<SimplePixelShader> celShadedPixelShader;
+	Microsoft::WRL::ComPtr<ID3D11RasterizerState> insideOutRasterizer;
 };
 
